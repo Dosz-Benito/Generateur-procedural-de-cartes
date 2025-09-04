@@ -8,10 +8,10 @@ DECALER_GAUCHE: int = pygame.K_LEFT
 DECALER_DROITE: int = pygame.K_RIGHT
 DECALER_HAUT: int = pygame.K_UP
 DECALER_BAS: int = pygame.K_DOWN
+GENERER_CARTE = pygame.K_p
 
 
 # Génération procédurale
-GENERER_CARTE = pygame.K_p
 DEC_HAUT_GAUCHE: tuple[int, int] = (-1, -1)
 DEC_HAUT: tuple[int, int] = (0, -1)
 DEC_HAUT_DROITE: tuple[int, int] = (1, -1)
