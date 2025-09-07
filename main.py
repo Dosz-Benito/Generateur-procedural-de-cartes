@@ -1,4 +1,4 @@
-from typing import Any, NoReturn
+from typing import Any, Callable, NoReturn, Self
 import pygame
 import random
 from scripts.carte import Carte
@@ -15,7 +15,7 @@ class Editeur:
 
         # Pour l'éditeur
         self.affichage = pygame.Surface(TAILLE_AFFICHAGE)
-        self.ecran = pygame.display.set_mode(TAILLE_ECRAN, pygame.SRCALPHA)
+        self.ecran: pygame.Surface = pygame.display.set_mode(TAILLE_ECRAN, pygame.SRCALPHA)
         self.rsc: dict[str, Any] = {
             'herbe': charger_images("rsc/herbe"),
         }
@@ -27,14 +27,20 @@ class Editeur:
         self.mouvement_x: list[int] = [0, 0]
         self.mouvement_y: list[int] = [0, 0]
 
-        self.generation_procedurale()
+        # Pour la génération procédurale
+        self.nb_tuiles: int = 500
+        self.p_haut: float = 0
+        self.p_bas: float = 0
+        self.p_gauche: float = 0
+        self.p_droite: float = 0
+        
+        self.fonc_generation_procedurale()
 
-    def generation_procedurale(self):
+    def generation_procedurale(self) -> None:
         x = n_x = 0
         y = n_y = 0
-        self.p_haut: float = random.random()
-        self.p_gauche: float = random.random()
-        for _ in range(500):
+        self.p_haut, self.p_gauche = random.choice([(0.8, 0.8), (0.8, 0.2), (0.2, 0.8), (0.2, 0.2)])
+        for _ in range(self.nb_tuiles):
             while self.carte.tuile_presente((n_x, n_y)):
                 if random.random() < self.p_gauche:
                     n_x += DEC_GAUCHE[0]
@@ -44,16 +50,12 @@ class Editeur:
                     n_y += DEC_HAUT[1]
                 else:
                     n_y += DEC_BAS[1]
-            x = n_x
-            y = n_y
+            x: int = n_x
+            y: int = n_y
             self.carte.ajouter_tuile(x, y)
-        self.remplir()
         self.carte.redessiner()
 
-    def remplir(self):
-        """Cette fonction mets des tuiles dans les espaces vides et fermés de la carte"""
-        for tuile in self.carte.carte.copy().values():
-            self.carte.entourer(tuile)
+    fonc_generation_procedurale: Callable[..., None] = generation_procedurale
 
     def lancer(self) -> NoReturn:
         while True:
@@ -67,7 +69,7 @@ class Editeur:
                     if event.key == GENERER_CARTE:
                         self.decalage = pygame.Vector2()
                         self.tout_effacer()
-                        self.generation_procedurale()
+                        self.fonc_generation_procedurale()
                     if event.key == DECALER_GAUCHE:
                         self.mouvement_x[0] = True
                     if event.key == DECALER_DROITE:
@@ -76,8 +78,9 @@ class Editeur:
                         self.mouvement_y[0] = True
                     if event.key == DECALER_BAS:
                         self.mouvement_y[1] = True
-                    if event.key == pygame.K_LSHIFT:
-                        self.shift = True
+                    if event.key == pygame.K_o:
+                        self.carte.remplir()
+                        self.carte.redessiner()
                 if event.type == pygame.KEYUP:
                     if event.key == DECALER_GAUCHE:
                         self.mouvement_x[0] = False
@@ -87,13 +90,13 @@ class Editeur:
                         self.mouvement_y[0] = False
                     if event.key == DECALER_BAS:
                         self.mouvement_y[1] = False
-                    if event.key == pygame.K_LSHIFT:
-                        self.shift = False
 
             self.carte.afficher(self.affichage, self.decalage)
             self.ecran.blit(pygame.transform.scale(self.affichage, TAILLE_ECRAN), (0, 0))
-            debogage.deboguer(f"Il y a {self.p_haut*100:.2f}% de chance que le chemin monte", couleur="yellow")
-            debogage.deboguer(f"Il y a {self.p_gauche*100:.2f}% de chance que le chemin vire vers la gauche", couleur="yellow", y = 20)
+            debogage.deboguer(f"Haut : {self.p_haut * 100:.2f}%")
+            debogage.deboguer(f"Gauche : {self.p_gauche * 100:.2f}%", x = 150)
+            debogage.deboguer(f"Bas : {(1-self.p_haut) * 100:.2f}%", y=20)
+            debogage.deboguer(f"Droite : {(1-self.p_gauche) * 100:.2f}%", x = 150,y=20)
             pygame.display.update()
             self.horloge.tick(60)
 
@@ -101,7 +104,7 @@ class Editeur:
         self.decalage.x += (self.mouvement_x[1] - self.mouvement_x[0]) * 5
         self.decalage.y += (self.mouvement_y[1] - self.mouvement_y[0]) * 5
 
-    def tout_effacer(self):
+    def tout_effacer(self) -> None:
         self.carte.carte = {}
 
 

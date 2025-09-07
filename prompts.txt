@@ -1,0 +1,17 @@
+La fonction Carte.entourer(tuile: Tuile) permet de remplir les vides éventuels autour d'une tuile. Elle est actuellement trop longue, avec de nombreux match case répétitifs, ce qui rend la lecture, la modification et la maintenance difficiles. Refactorise cette fonction en appliquant ces contraintes :
+- supprimer les répétitions et simplifier la logique existante (tu peux remplacer les match case par une autre méthode si plus clair)
+- le code doit être clair et concis (noms de variables)
+- mets des commentaires pour bien expliquer
+- vise environ 25 lignes de code sans sacrifier la lisibilité
+- Si tu rajoutes des fonctions inexistantes, donne aussi leur code et où les placer
+Donc tu donnes :
+- le code refactorisé et commenté
+- les fonctions auxilliaires ajoutées
+- une explication rapide des améliorations
+Voici la fonction : 
+
+---------------------------------------------------------------------
+
+Je suis dans un projet de génération procédurale de cartes. La classe principale est Editeur. Elle comporte une fonction generation_procedurale qui génère des emplacements aléatoires et y ajoute des tuiles sur la carte (Editeur.Carte est un objet Carte). Carte implémente une méthode remplir qui fait en gros for tuile in toutes_les_tuiles_de_la_carte: tuile.entourer. La méthode entourer permet de remplir suivant une logique donnée les espaces vides autour de la tuile (self). Chaque tuile est un objet Tuile avec des fonctions tuiles_autour, afficher, ...
+
+---------------------------------------------------------------------

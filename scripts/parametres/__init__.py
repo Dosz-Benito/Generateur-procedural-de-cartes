@@ -8,7 +8,7 @@ DECALER_GAUCHE: int = pygame.K_LEFT
 DECALER_DROITE: int = pygame.K_RIGHT
 DECALER_HAUT: int = pygame.K_UP
 DECALER_BAS: int = pygame.K_DOWN
-GENERER_CARTE = pygame.K_p
+GENERER_CARTE: int = pygame.K_p
 
 
 # Génération procédurale

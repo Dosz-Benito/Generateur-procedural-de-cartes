@@ -1,7 +1,7 @@
 from typing import Any, Sequence
 import pygame
 from scripts.tuile import Tuile, pos_en_str
-from scripts.parametres import INDEXS_DE_DECALAGES_DIAGONAUX, INDEXS_DE_DECALAGES_DROITS
+from scripts.parametres import INDEXS_DE_DECALAGES, INDEXS_DE_DECALAGES_DIAGONAUX, INDEXS_DE_DECALAGES_DROITS
 from scripts.utilitaires import maths
 
 # * Constantes
@@ -45,81 +45,67 @@ class Carte:
     def enlever_tuile(self, x: int, y: int) -> None:
         del self.carte[f"{x};{y}"]
 
-    def entourer(self, tuile: Tuile):
-        tuiles_autour_droit: list[Tuile] = [] # Liste des tuiles autour de nous en droit
-        for dec_x, dec_y in INDEXS_DE_DECALAGES_DROITS:
-            pos = tuile.pos[0] + dec_x, tuile.pos[1] + dec_y
-            if self.tuile_presente(pos):
-                loc = pos_en_str(pos)
-                tuiles_autour_droit.append(self.carte[loc])
-        nb_tuiles_autour_droit: int = len(tuiles_autour_droit)
+    def remplir(self) -> None:
+        """Cette fonction mets des tuiles dans les espaces vides et fermés de la carte"""
+        for tuile in self.carte.copy().values():
+            self.entourer(tuile)
 
-        tuiles_autour_diagonales: list[Tuile] = [] # Liste des tuiles autour de nous en diagonale
-        for dec_x, dec_y in INDEXS_DE_DECALAGES_DIAGONAUX:
-            pos = tuile.pos[0] + dec_x, tuile.pos[1] + dec_y
-            if self.tuile_presente(pos):
-                loc = pos_en_str(pos)
-                tuiles_autour_diagonales.append(self.carte[loc])
-        nb_tuiles_autour_diagonales: int = len(tuiles_autour_diagonales)
+    def entourer(self, tuile: Tuile) -> None:
+        """Remplit les vides autour d'une tuile existante."""
+        # Récupère les tuiles autour en droit et en diagonale
+        voisins_droits: list[Tuile] = self._tuiles_autour(tuile, INDEXS_DE_DECALAGES_DROITS)
+        voisins_diag: list[Tuile] = self._tuiles_autour(tuile, INDEXS_DE_DECALAGES_DIAGONAUX)
 
-        match nb_tuiles_autour_droit:
-            case 0:
-                match nb_tuiles_autour_diagonales:
-                    case 0:
-                        print(f"Une tuile {self} est au milieu de nulle part !!!")
-                        raise
-                    case 1:
-                        self.enlever_tuile(*tuiles_autour_diagonales[0].pos)
-                    case 2:
-                        tuile.pos[1] += 1
-                        self.ajouter_profondeur(tuile)
-                        for t in [*tuiles_autour_diagonales]:
-                            self.ajouter_profondeur(t)
-                    case 3:
-                        # Quand il y a 3 tuiles autour, on comble les 2 espaces vides
-                        pos_x: set[int] = set()
-                        pos_y: set[int] = set()
-                        for voisine in tuiles_autour_diagonales:
-                            pos_x.add(voisine.pos[0])
-                            pos_y.add(voisine.pos[1])
-                        # pos_x contient 2 positions en x : celles des tuiles à notre gauche et à notre droite
-                        for x in pos_x:
-                            self.ajouter_tuile(x, tuile.pos[1])
-                        for y in pos_y:
-                            self.ajouter_tuile(tuile.pos[0], y)
-                    case 4:
-                        for voisine in tuiles_autour_diagonales:
-                            pos_voisine = voisine.pos
-                            x = tuile.pos[0] - maths.signe(tuile.pos[0] - pos_voisine[0])
-                            y = tuile.pos[1] - maths.signe(tuile.pos[1] - pos_voisine[1])
-                            self.ajouter_tuile(x, tuile.pos[1])
-                            self.ajouter_tuile(tuile.pos[0], y)
-            case 1:
-                match nb_tuiles_autour_diagonales:
-                    case 1:
-                        pass
-                    case 2:
-                        # if len(set([t.pos[1] for t in]))
-                        for tuile in tuiles_autour_diagonales:
-                            if tuile.pos[0] == tuiles_autour_droit[0].pos[0]:
-                                self.ajouter_tuile(tuile.pos[0], tuile.pos[1] - (tuile.pos[1] - tuile.pos[1]))
-                    case 3 | 4:
-                        # Quand il y a 3 tuiles autour, on comble les 2 espaces vides
-                        pos_x: set[int] = set()
-                        pos_y: set[int] = set()
-                        for voisine in tuiles_autour_diagonales:
-                            pos_x.add(voisine.pos[0])
-                            pos_y.add(voisine.pos[1])
-                        # pos_x contient 2 positions en x : celles des tuiles à notre gauche et à notre droite
-                        for x in pos_x:
-                            self.ajouter_tuile(x, tuile.pos[1])
-                        for y in pos_y:
-                            self.ajouter_tuile(tuile.pos[0], y)
+        nb_droits: int = len(voisins_droits)
+        nb_diag: int = len(voisins_diag)
+
+        # Cas où la tuile est isolée
+        if nb_droits == 0 and nb_diag == 0:
+            print(f"Une tuile {tuile} est au milieu de nulle part !!!")
+            return
+
+        # Supprime les tuiles diagonales seules si pas de voisins droits
+        if nb_droits == 0 and nb_diag == 1:
+            self.enlever_tuile(*voisins_diag[0].pos)
+            return
+
+        # Pour les autres configurations, on comble les vides selon les voisins
+        if nb_droits == 0 and nb_diag in (2, 3, 4):
+            # Décalage vertical pour 2 tuiles ou ajout de tuiles pour 3-4 tuiles
+            if nb_diag == 2:
+                tuile.pos = (tuile.pos[0], tuile.pos[1] + 1)
+                self.ajouter_profondeur(tuile)
+                for t in voisins_diag:
+                    self.ajouter_profondeur(t)
+            else:
+                self._combler_espaces_vides(tuile, voisins_diag)
+            return
+
+        # Cas avec un voisin droit : on comble les diagonales si nécessaire
+        if nb_droits == 1 and nb_diag in (2, 3, 4):
+            self._combler_espaces_vides(tuile, voisins_diag)
+
+    def _tuiles_autour(self, tuile: Tuile, decalages: list[tuple[int, int]] = INDEXS_DE_DECALAGES) -> list[Tuile]:
+        """Renvoie la liste des tuiles présentes autour de la tuile selon les décalages donnés."""
+        voisins: list[Tuile] = []
+        for dx, dy in decalages:
+            pos: tuple[int, int] = tuile.pos[0] + dx, tuile.pos[1] + dy
+            if self.tuile_presente(pos):
+                voisins.append(self.carte[pos_en_str(pos)])
+        return voisins
+
+    def _combler_espaces_vides(self, tuile: Tuile, voisins: list[Tuile]) -> None:
+        """Ajoute des tuiles pour combler les espaces vides autour d'une tuile donnée."""
+        pos_x: set[int] = {v.pos[0] for v in voisins}
+        pos_y: set[int] = {v.pos[1] for v in voisins}
+        for x in pos_x:
+            self.ajouter_tuile(x, tuile.pos[1])
+        for y in pos_y:
+            self.ajouter_tuile(tuile.pos[0], y)
 
     def ajouter_profondeur(self, tuile: Tuile):
         for _ in range(1, 11): # 10-pos[1]
             self.ajouter_tuile(tuile.pos[0], tuile.pos[1]+_)
-
 
     def redessiner(self):
         """Redéssine la carte"""
@@ -134,7 +120,8 @@ class Carte:
             if (tuile.type in TYPES_AUTOTUILES) and (decalages_alentour in CARTE_AUTOTUILES):
                 tuile.index = CARTE_AUTOTUILES[decalages_alentour]
             else:
-                print(f"[Carte.redessiner] Index adéquat introuvable pour la tuile {tuile}, {decalages_alentour=}")
+                pass
+                # print(f"[Carte.redessiner] Index adéquat introuvable pour la tuile {tuile}, {decalages_alentour=}")
 
     def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None:
         for tuile in self.carte.values():
