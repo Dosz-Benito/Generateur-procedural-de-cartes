@@ -8,6 +8,7 @@ DECALER_GAUCHE: int = pygame.K_LEFT
 DECALER_DROITE: int = pygame.K_RIGHT
 DECALER_HAUT: int = pygame.K_UP
 DECALER_BAS: int = pygame.K_DOWN
+GENERER_CARTE_ILES: int = pygame.K_i
 GENERER_CARTE: int = pygame.K_p
 
 
