@@ -1,6 +1,8 @@
-git commit -m "Tuile hérite de pygame.sprite.Sprite (préparation pour la génération de la décoration)
+git commit -m "Documentation et refactorisation du projet
 
-- Renommage des constantes de carte.py en 'redessin' pour clarifier
-- Tuile.image géré comme attribut et non plus comme propriété
-- Suppression de carte_deco à l’enregistrement des cartes
-- Tuile.from_dict renommé en Tuile.de_dict (cohérence avec le français)"
+- Ajout de docstrings explicites pour les modules, fonctions et classes
+- Correction des mauvais noms de variables, améliorations de noms de variables déjà existants
+- Ajout des annotations statiques de types
+- Déplacement des constantes et autres paramètres dans le dossier parametres
+- Fichier de documentation mis à jour
+- Restructuration globale du code (mais logique intacte)"

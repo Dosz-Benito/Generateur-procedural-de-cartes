@@ -76,18 +76,19 @@ main.py (Editeur)
 class Editeur:
     def __init__(self) -> None
     def generation_procedurale(self) -> None
-    def remplir(self) -> None
+    def generation_procedurale_iles(self) -> None
     def lancer(self) -> NoReturn
     def appliquer_decalage(self) -> None
     def tout_effacer(self) -> None
 ```
 
 **Attributs clés** :
-- `affichage` : Surface de rendu interne (900x430)
-- `ecran` : Fenêtre d'affichage mise à l'échelle
+- `surface_affichage` : Surface de rendu interne (900x430)
+- `fenetre` : Fenêtre d'affichage mise à l'échelle
+- `ressources` : Dictionnaire des ressources graphiques
 - `carte` : Instance de la classe Carte
-- `decalage` : Position de la caméra
-- `p_haut`, `p_gauche` : Probabilités de génération
+- `decalage_camera` : Position de la caméra
+- `probabilite_monter`, `probabilite_gauche` : Probabilités de génération
 
 ### 2. `scripts/carte.py` - Classe Carte
 
@@ -95,18 +96,21 @@ class Editeur:
 
 ```python
 class Carte:
-    def __init__(self, jeu: Any, taille: int = 16) -> None
-    def tuile_presente(self, pos: Sequence[int]) -> bool
-    def ajouter_tuile(self, x: int, y: int) -> None
+    def __init__(self, editeur: Any, taille: int = 16) -> None
+    def tuile_presente(self, position: Sequence[int]) -> bool
+    def ajouter_tuile(self, x: int, y: int, type_tuile: TypeTuile) -> None
     def enlever_tuile(self, x: int, y: int) -> None
     def entourer(self, tuile: Tuile) -> None
     def redessiner(self) -> None
-    def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None
+    def afficher(self, surface: pygame.Surface, decalage_camera: pygame.Vector2) -> None
+    def enregistrer_carte(self) -> tuple[bool, str]
+    def charger_carte(self) -> tuple[bool, str]
+    def nouvelle_carte(self) -> tuple[bool, str]
 ```
 
 **Constantes importantes** :
-- `CARTE_AUTOTUILES` : Mapping des configurations de voisinage vers les indices de sprites
-- `TYPES_AUTOTUILES` : Types de tuiles supportant l'auto-tiling
+- `CARTE_REDESSIN` : Mapping des configurations de voisinage vers les indices de sprites
+- `TYPES_REDESSIN` : Types de tuiles supportant l'auto-tiling
 
 ### 3. `scripts/tuile.py` - Classe Tuile
 
@@ -143,16 +147,16 @@ DECALER_BAS = pygame.K_DOWN
 GENERER_CARTE = pygame.K_p
 
 # Décalages directionnels
-INDEXS_DE_DECALAGES_DROITS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-INDEXS_DE_DECALAGES_DIAGONAUX = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
+INDEXS_DECALAGES_DROITS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+INDEXS_DECALAGES_DIAGONAUX = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
 ```
 
 ### 5. Modules utilitaires
 
 #### `scripts/utilitaires/debogage.py`
 ```python
-def deboguer(info: object, *, x: int = 0, y: int = 0, couleur: Any = "black") -> None
-def deboguer_img(img: pygame.Surface, x: int = 0, y: int = 0) -> None
+def afficher_debug(information: str | int | float, *, x: int = 0, y: int = 0, couleur: pygame.Color = pygame.Color("white"), antialias: bool = False, wraplength: Optional[int] = 0, alignement: int = pygame.FONT_LEFT) -> None
+def afficher_image_debug(image: pygame.Surface, x: int = 0, y: int = 0) -> None
 ```
 
 #### `scripts/utilitaires/maths.py`
@@ -162,8 +166,8 @@ def signe(nombre: float) -> int  # Retourne -1, 0, ou 1
 
 #### `scripts/utilitaires/outils_images.py`
 ```python
-def charger_image(fichier: str, couleur: tuple[int, int, int] = (0, 0, 0)) -> pygame.Surface
-def charger_images(dossier: str, couleur: tuple[int, int, int] = (0, 0, 0)) -> list[pygame.Surface]
+def charger_image(fichier: str, couleur_transparente: tuple[int, int, int] = (0, 0, 0)) -> pygame.Surface
+def charger_images(dossier: str, couleur_transparente: tuple[int, int, int] = (0, 0, 0)) -> list[pygame.Surface]
 ```
 
 ---
@@ -357,10 +361,10 @@ Dessine la tuile sur la surface donnée en tenant compte du décalage de caméra
 
 ### Fonctions utilitaires
 
-#### `charger_images(dossier: str) -> list[pygame.Surface]`
+#### `charger_images(dossier: str, couleur_transparente: tuple[int, int, int] = (0, 0, 0)) -> list[pygame.Surface]`
 Charge toutes les images PNG d'un dossier et retourne une liste triée.
 
-#### `deboguer(info: object, **kwargs) -> None`
+#### `afficher_debug(information: str | int | float, **kwargs) -> None`
 Affiche du texte de débogage à l'écran avec options de formatage.
 
 ---
