@@ -10,9 +10,10 @@ from scripts.parametres import INDEXS_DE_DECALAGES, INDEXS_DE_DECALAGES_DIAGONAU
 from scripts.type import TypeTuile
 
 # * Constantes
+TYPES_TUILES: list[str] = ['herbe', 'pierre']
 TYPES_OBSTACLES: list[str] = ['herbe', 'pierre']
-TYPES_AUTOTUILES = {"herbe", "pierre"}
-CARTE_AUTOTUILES: dict[tuple[tuple[int, int], ...], int]= {
+TYPES_REDESSIN: list[str] = ["herbe", "pierre"]
+CARTE_REDESSIN: dict[tuple[tuple[int, int], ...], int]= {
     tuple(sorted([(0 ,1), (1, 0)])): 0, # *En haut à gauche
     tuple(sorted([(-1, 0), (1, 0), (0, 1)])): 1, # *En haut au centre
     tuple(sorted([(-1, 0), (0, 1)])): 2, # *En haut à droite
@@ -36,17 +37,18 @@ CARTE_AUTOTUILES: dict[tuple[tuple[int, int], ...], int]= {
 class Carte:
     """Une classe représentant une carte"""
 
-    def __init__(self, jeu:Any, taille: int = 16) -> None:
-        self.jeu: Any = jeu
+    def __init__(self, editeur:Any, taille: int = 16) -> None:
         self.taille_tuile: int = taille
         self.carte: dict[str, Tuile] = {}
         self.nom_fichier: Optional[str] = None
+        imgs: list[list[pygame.Surface]] = [[editeur.rsc[t][i] for i in range(len(editeur.rsc[t]))] for t in TYPES_TUILES]
+        self.images_tuiles: list[pygame.Surface] = [img for sublist in imgs for img in sublist]
 
     def tuile_presente(self, pos: Sequence[int]) -> bool:
         return True if self.carte.get(pos_en_str(pos)) else False # pyright: ignore[reportArgumentType]
 
     def ajouter_tuile(self, x: int, y: int, type: TypeTuile) -> None:
-        self.carte[f"{int(x)};{int(y)}"] = Tuile(type, (x, y), 0, self.jeu.rsc[type])
+        self.carte[f"{int(x)};{int(y)}"] = Tuile(type, (x, y), 0, self.images_tuiles)
 
     def enlever_tuile(self, x: int, y: int) -> None:
         del self.carte[f"{x};{y}"]
@@ -110,7 +112,7 @@ class Carte:
             self.ajouter_tuile(tuile.pos[0], y, tuile.type)
 
     def ajouter_profondeur(self, tuile: Tuile):
-        for _ in range(1, 11): # 10-pos[1]
+        for _ in range(1, 11): # 11 - tuile.pos[1]
             self.ajouter_tuile(tuile.pos[0], tuile.pos[1]+_, tuile.type)
 
     #region Fonctions pour la génération en îles
@@ -234,14 +236,20 @@ class Carte:
             for dec in [(-1, 0), (0, -1), (1, 0), (0, 1)]:
                 pos: tuple[int, int] = tuile.pos[0] + dec[0], tuile.pos[1] + dec[1]
                 if self.tuile_presente(pos):
-                    # if tuile['type'] == self.carte[loc]['type']:
+                    if tuile.type == self.carte[pos_en_str(pos)].type:
                         decalages_alentour.add(dec)
             decalages_alentour = tuple(sorted(decalages_alentour))
-            if (tuile.type in TYPES_AUTOTUILES) and (decalages_alentour in CARTE_AUTOTUILES):
-                tuile.index = CARTE_AUTOTUILES[decalages_alentour]
+            if (tuile.type in TYPES_REDESSIN) and (decalages_alentour in CARTE_REDESSIN):
+                tuile.index = CARTE_REDESSIN[decalages_alentour]
             else:
                 pass
                 # print(f"[Carte.redessiner] Index adéquat introuvable pour la tuile {tuile}, {decalages_alentour=}")
+            # Offset for pierre tiles
+            if tuile.type == 'pierre':
+                tuile.index += 9
+            # Update image and rect based on new index
+            tuile.image = tuile.images[tuile.index]
+            tuile.rect = tuile.image.get_rect()
 
     def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None:
         for tuile in self.carte.values():
@@ -252,14 +260,14 @@ class Carte:
         Enregistre la carte actuelle dans un fichier JSON.
         Si nom_fichier est défini, sauvegarde dans ce fichier.
         Sinon, crée un nouveau fichier numéroté.
-        
+
         Returns:
             tuple[bool, str]: (succès, message)
         """
         try:
             # Créer le répertoire s'il n'existe pas
             os.makedirs("rsc/cartes", exist_ok=True)
-            
+
             # Déterminer le nom du fichier
             if self.nom_fichier is not None:
                 chemin_fichier = f"rsc/cartes/{self.nom_fichier}"
@@ -270,45 +278,27 @@ class Carte:
                     i += 1
                 chemin_fichier = f"rsc/cartes/{i}.json"
                 self.nom_fichier = f"{i}.json"
-            
+
             # Préparer les données à sauvegarder
             donnees_carte = {
                 "taille_tuile": self.taille_tuile,
                 "nom_fichier": self.nom_fichier,
                 "carte": {pos: tuile.en_dict() for pos, tuile in self.carte.items()},
-                "carte_deco": {
-        "0;-100": {
-            "type": "ennemi",
-            "pos": [
-                258,
-                168
-            ],
-            "index": 0
-        },
-        "30;-100": {
-            "type": "joueur",
-            "pos": [
-                140,
-                163
-            ],
-            "index": 0
-        }
-    }
             }
 
             # Sauvegarder dans le fichier
             with open(chemin_fichier, 'w', encoding='utf-8') as f:
                 json.dump(donnees_carte, f)
-            
+
             return True, f"Carte '{self.nom_fichier}' sauvegardée ({len(self.carte)} tuiles)"
-            
+
         except Exception as e:
             return False, f"Erreur lors de la sauvegarde : {str(e)}"
 
     def charger_carte(self) -> tuple[bool, str]:
         """
         Ouvre une boîte de dialogue pour charger un fichier de carte JSON.
-        
+
         Returns:
             tuple[bool, str]: (succès, message)
         """
@@ -316,60 +306,61 @@ class Carte:
             # Créer une fenêtre Tkinter cachée
             root = tk.Tk()
             root.withdraw()
-            
+
             # Ouvrir la boîte de dialogue de sélection de fichier
             chemin_fichier = filedialog.askopenfilename(
                 title="Ouvrir une carte",
                 initialdir="rsc/cartes",
                 filetypes=[("Fichiers JSON", "*.json"), ("Tous les fichiers", "*.*")]
             )
-            
+
             # Fermer la fenêtre Tkinter
             root.destroy()
-            
+
             if not chemin_fichier:
                 return False, "Aucun fichier sélectionné"
-            
+
             # Charger le fichier JSON
             with open(chemin_fichier, 'r', encoding='utf-8') as f:
                 donnees = json.load(f)
-            
+
             # Vider la carte actuelle
             self.carte.clear()
-            
+
             # Charger les données
             self.taille_tuile = donnees.get("taille_tuile", 16)
             self.nom_fichier = donnees.get("nom_fichier")
 
             # Reconstruire les tuiles
             for pos_str, tuile_data in donnees.get("carte", {}).items():
-                tuile = Tuile.from_dict(tuile_data, self.jeu.rsc[tuile_data["type"]])
+                tuile = Tuile.de_dict(tuile_data, self.images_tuiles)
                 self.carte[pos_str] = tuile
 
             # Si nom_fichier n'est pas défini dans le fichier, utiliser le basename
             if self.nom_fichier is None:
                 self.nom_fichier = os.path.basename(chemin_fichier)
-            
+
             return True, f"Carte '{self.nom_fichier}' chargée ({len(self.carte)} tuiles)"
-            
+
         except Exception as e:
             return False, f"Erreur lors du chargement : {str(e)}"
 
     def nouvelle_carte(self) -> tuple[bool, str]:
         """
         Crée une nouvelle carte vide.
-        
+
         Returns:
             tuple[bool, str]: (succès, message)
         """
         try:
             # Vider la carte actuelle
             self.carte.clear()
-            
+
             # Réinitialiser le nom de fichier
             self.nom_fichier = None
-            
+
             return True, "Nouvelle carte créée (0 tuiles)"
-            
+
         except Exception as e:
             return False, f"Erreur lors de la création d'une nouvelle carte : {str(e)}"
+

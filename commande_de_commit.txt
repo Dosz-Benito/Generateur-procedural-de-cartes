@@ -1,8 +1,6 @@
-git commit --amend -m "Version stable de la génération procédurale de cartes composées d'îles
+git commit -m "Tuile hérite de pygame.sprite.Sprite (préparation pour la génération de la décoration)
 
-- Ajoute la possibilité de créer des cartes avec des îles de plusieurs formes (pyramides, rectangle, escaliers, etc)
-- Ajoute la sauvegarde et le chargement des cartes en JSON
-- Ajoute de nouveaux assets qui sont des tuiles de pierre
-- Réorganise les répertoires d'assets et les chemins de ressources
-- Améliore l'interface avec de nouveaux contrôles et un retour debug
-- Met à jour la documentation sur la structure, les visuels et les contrôles"
+- Renommage des constantes de carte.py en 'redessin' pour clarifier
+- Tuile.image géré comme attribut et non plus comme propriété
+- Suppression de carte_deco à l’enregistrement des cartes
+- Tuile.from_dict renommé en Tuile.de_dict (cohérence avec le français)"
