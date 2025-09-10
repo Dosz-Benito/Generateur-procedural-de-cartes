@@ -1,14 +1,13 @@
 """Module utilitaire pour la gestion des images et ressources graphiques."""
 
 import os
-import random
 import pygame
 
 # Constantes
-DOSSIER_GENERAL = "rsc/"
-DOSSIER_SAUVEGARDES = DOSSIER_GENERAL + "cartes/"
-DOSSIER_IMAGES = DOSSIER_GENERAL + "images/"
-TYPES_DECORATIONS = {"plantes", "arbres", "rocher"}
+DOSSIER_GENERAL: str = "rsc/"
+DOSSIER_SAUVEGARDES: str = DOSSIER_GENERAL + "cartes/"
+DOSSIER_IMAGES: str = DOSSIER_GENERAL + "images/"
+TYPES_DECORATIONS: set[str] = {"plantes", "arbres", "rocher"}
 
 
 def charger_image(fichier: str, couleur_transparente: tuple[int, int, int] = (0, 0, 0)) -> pygame.Surface:

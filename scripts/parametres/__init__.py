@@ -2,9 +2,13 @@
 
 import pygame
 
+#* Jeu en général
 AGRANDISSEMENT: float = 2.0
 TAILLE_AFFICHAGE: tuple[int, int] = (900, 430)
 TAILLE_ECRAN: tuple[float, float] = (TAILLE_AFFICHAGE[0] * AGRANDISSEMENT, TAILLE_AFFICHAGE[1] * AGRANDISSEMENT)
+FPS: int = 60
+VITESSE_CAMERA: int = 5
+NOMBRE_TUILES = 500
 
 #* --------- Commandes de navigation ---------
 DECALER_GAUCHE: int = pygame.K_LEFT

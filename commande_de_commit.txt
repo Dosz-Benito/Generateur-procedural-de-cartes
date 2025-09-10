@@ -1,8 +1,6 @@
-git commit -m "Documentation et refactorisation du projet
+git commit -m "Refactorisation et restructuration du projet grâce aux principes et conseils du livre 'Clean Code'
 
-- Ajout de docstrings explicites pour les modules, fonctions et classes
-- Correction des mauvais noms de variables, améliorations de noms de variables déjà existants
-- Ajout des annotations statiques de types
-- Déplacement des constantes et autres paramètres dans le dossier parametres
-- Fichier de documentation mis à jour
-- Restructuration globale du code (mais logique intacte)"
+- Réorganisation complète de la structure des fichiers pour une meilleure extensibilité
+- Amélioration de la lisibilité et maintenabilité du code
+- La centralisation des paramètres dans un dossier spécifique est terminée
+- Les longs fichiers/fonctions/classes ont été décortiqués pour un code plus propre et maintenable"
