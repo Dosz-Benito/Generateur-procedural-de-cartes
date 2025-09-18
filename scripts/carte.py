@@ -7,7 +7,7 @@ import json
 import os
 from tkinter import filedialog
 from scripts.tuile import Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN, TYPES_TUILES
+from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN
 from scripts.type import TypeTuile
 
 TAILLE_TUILE = 16
@@ -71,8 +71,7 @@ class Carte:
             x (int): Coordonnée X
             y (int): Coordonnée Y
         """
-        cle_position: str = f"{x};{y}"
-        del self.carte[cle_position]
+        del self.carte[f"{x};{y}"]
 
     def remplir(self) -> None:
         """Remplit les espaces vides et fermés de la carte avec des tuiles."""
@@ -95,10 +94,12 @@ class Carte:
         # Cas où la tuile est isolée
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 0:
             print(f"Une tuile {tuile} est au milieu de nulle part !!!")
+            self.enlever_tuile(*tuile.pos)
             return
 
         # Supprime les tuiles diagonales seules si pas de voisins droits
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 1:
+            print(f"La tuile {tuile} a une seule diagonale")
             self.enlever_tuile(*voisins_diagonaux[0].pos)
             return
 

@@ -1,13 +1,13 @@
 """Paramètres et constantes globales du projet de génération procédurale de cartes."""
 
 import pygame
+from scripts.type import TypeDecoration, TypeTuile
 
 #* Jeu en général
-AGRANDISSEMENT: float = 2.0
-TAILLE_AFFICHAGE: tuple[int, int] = (900, 430)
-TAILLE_ECRAN: tuple[float, float] = (TAILLE_AFFICHAGE[0] * AGRANDISSEMENT, TAILLE_AFFICHAGE[1] * AGRANDISSEMENT)
+TAILLE_ECRAN: tuple[float, float] = (1690, 800)
+TAILLE_AFFICHAGE: tuple[float, float] = (TAILLE_ECRAN[0] * 0.98, TAILLE_ECRAN[1] * 0.98)
 FPS: int = 60
-VITESSE_CAMERA: int = 5
+VITESSE_CAMERA: int = 10
 NOMBRE_TUILES = 500
 
 #* --------- Commandes de navigation ---------
@@ -42,10 +42,10 @@ INDEXS_DECALAGES_DROITS: list[tuple[int, int]] = [
     DECALAGE_HAUT, DECALAGE_BAS, DECALAGE_GAUCHE, DECALAGE_DROITE
 ]
 
-# Constantes
-TYPES_TUILES: list[str] = ['herbe', 'pierre']
-TYPES_OBSTACLES: list[str] = ['herbe', 'pierre']
-TYPES_REDESSIN: list[str] = ["herbe", "pierre"]
+# Constantes pour le redessinage
+TYPES_TUILES: list[TypeTuile] = ['herbe', 'pierre']
+TYPES_DECORATION: list[TypeDecoration] = ["arbre", "plante"]
+TYPES_REDESSIN: list[TypeTuile] = ["herbe", "pierre"]
 CARTE_REDESSIN: dict[tuple[tuple[int, int], ...], int]= {
     tuple(sorted([(0 ,1), (1, 0)])): 0, # *En haut à gauche
     tuple(sorted([(-1, 0), (1, 0), (0, 1)])): 1, # *En haut au centre

@@ -8,7 +8,7 @@ from scripts.carte import Carte
 from scripts.type import TypeTuile
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
-from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOMBRE_TUILES, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
+from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOMBRE_TUILES, TAILLE_AFFICHAGE, TAILLE_ECRAN, TYPES_TUILES, VITESSE_CAMERA
 # Tester avec stubtest.exe
 
 
@@ -33,6 +33,8 @@ class Editeur:
         self.ressources: dict[str, list[pygame.Surface]] = {
             'herbe': charger_images("rsc/images/tuiles/herbe"),
             'pierre': charger_images("rsc/images/tuiles/pierre"),
+            "plante": charger_images("rsc/images/deco/plantes"),
+            "arbre": charger_images("rsc/images/deco/arbres"),
         }
         self.horloge_jeu = pygame.time.Clock()
         self.decalage_camera: pygame.Vector2 = pygame.Vector2()
@@ -175,11 +177,11 @@ class Editeur:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                self._gerer_touche_pressee(event.key)
+                self._gerer_touche_appui_touche(event.key)
             if event.type == pygame.KEYUP:
-                self._gerer_touche_relachee(event.key)
+                self._gerer_relachement_touche(event.key)
 
-    def _gerer_touche_pressee(self, key: int) -> None:
+    def _gerer_touche_appui_touche(self, key: int) -> None:
         """Gère les événements de touche pressée."""
         if key == GENERER_CARTE_ILES:
             self.decalage_camera = pygame.Vector2()
@@ -212,7 +214,7 @@ class Editeur:
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
 
-    def _gerer_touche_relachee(self, key: int) -> None:
+    def _gerer_relachement_touche(self, key: int) -> None:
         """Gère les événements de touche relâchée."""
         if key == DECALER_GAUCHE:
             self.mouvement_horizontal[0] = False

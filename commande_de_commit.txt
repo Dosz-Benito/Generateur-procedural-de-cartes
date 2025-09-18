@@ -1,6 +1,10 @@
-git commit -m "Refactorisation et restructuration du projet grâce aux principes et conseils du livre 'Clean Code'
+git commit -m "Préparation à la gestion de la décoration
 
-- Réorganisation complète de la structure des fichiers pour une meilleure extensibilité
-- Amélioration de la lisibilité et maintenabilité du code
-- La centralisation des paramètres dans un dossier spécifique est terminée
-- Les longs fichiers/fonctions/classes ont été décortiqués pour un code plus propre et maintenable"
+- Introduit une classe de base Décoration avec positions flottantes et type TypeDecoration
+- Fait hériter Tuile de Décoration pour améliorer la réutilisation du code
+- Ajoute les types de décoration aux paramètres
+- Supprime le fichier en double carte_procedurale.py et renomme l'autre en carte.py
+- Ajuste les méthodes liées pour assurer la cohérence
+- Renomme quelques fonctions de main.py
+- Gère mieux l'affichage de la carte générée (possibilité de zoomer facilement, mais en code)
+- Refactorisations très mineures des constantes de redessinage dans scripts/parametres/__init__.py"
