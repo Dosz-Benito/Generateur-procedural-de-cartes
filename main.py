@@ -5,6 +5,7 @@ import pygame
 import random
 import sys
 from scripts.carte import Carte
+from scripts.rendu.camera import Camera
 from scripts.type import TypeTuile
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
@@ -38,7 +39,11 @@ class Editeur:
         }
         self.horloge_jeu = pygame.time.Clock()
         self.decalage_camera: pygame.Vector2 = pygame.Vector2()
+        self.camera = Camera(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
         self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]})
+
+        # Ajouter les tuiles à la caméra pour le rendu
+        self.camera.add(self.carte.tuiles)
 
         # Pour les messages de débogage
         self.message_debug: Optional[str] = None
@@ -80,6 +85,9 @@ class Editeur:
             position_y: int = nouvelle_position_y
             self.carte.ajouter_tuile(position_x, position_y, "herbe")
         self.carte.redessiner()
+        # Mettre à jour les tuiles dans la caméra
+        self.camera.empty()
+        self.camera.add(self.carte.tuiles)
 
     def generation_procedurale_iles(self) -> None:
         """Génère des îles variées séparées par des espaces vides.
@@ -143,6 +151,9 @@ class Editeur:
             position_x += largeur + espace_vide
 
         self.carte.redessiner()
+        # Mettre à jour les tuiles dans la caméra
+        self.camera.empty()
+        self.camera.add(self.carte.tuiles)
 
     fonc_generation_procedurale: Callable[..., None] = generation_procedurale_iles
 
@@ -154,7 +165,8 @@ class Editeur:
             self.appliquer_decalage()
             self._gerer_evenements()
 
-            self.carte.afficher(self.surface_affichage, self.decalage_camera)
+            # Utiliser la caméra pour le rendu avec optimisation des tuiles visibles
+            self.camera.draw(self.surface_affichage)
             self.fenetre.blit(pygame.transform.scale(self.surface_affichage, TAILLE_ECRAN), (0, 0))
             # Affichage du nom de la carte en mode débogage
             nom_affiche: str = self.carte.nom_fichier if self.carte.nom_fichier else "Nouvelle carte"
@@ -163,6 +175,7 @@ class Editeur:
             debogage.afficher_debug(self.fenetre, f"Gauche : {self.probabilite_gauche * 100:.2f}%", x=150)
             debogage.afficher_debug(self.fenetre, f"Bas : {(1-self.probabilite_monter) * 100:.2f}%", y=20)
             debogage.afficher_debug(self.fenetre, f"Droite : {(1-self.probabilite_gauche) * 100:.2f}%", x=150, y=20)
+            debogage.afficher_debug(self.fenetre, self.carte.tuiles, y=40)
             # Affichage des messages de débogage pour les opérations de fichier
             if self.message_debug and self.couleur_debug:
                 debogage.afficher_debug(self.fenetre, self.message_debug, y=40, couleur=self.couleur_debug)
@@ -184,15 +197,18 @@ class Editeur:
     def _gerer_touche_appui_touche(self, key: int) -> None:
         """Gère les événements de touche pressée."""
         if key == GENERER_CARTE_ILES:
-            self.decalage_camera = pygame.Vector2()
+            self.camera.decalage = pygame.Vector2()
             self.effacer_tuiles()
             self.generation_procedurale_iles()
         elif key == GENERER_CARTE:
-            self.decalage_camera = pygame.Vector2()
+            self.camera.decalage = pygame.Vector2()
             self.effacer_tuiles()
             self.generation_procedurale()
             self.carte.remplir()
             self.carte.redessiner()
+            # Mettre à jour les tuiles dans la caméra
+            self.camera.empty()
+            self.camera.add(self.carte.tuiles)
         elif key == DECALER_GAUCHE:
             self.mouvement_horizontal[0] = True
         elif key == DECALER_DROITE:
@@ -203,6 +219,10 @@ class Editeur:
             self.mouvement_vertical[1] = True
         elif key == pygame.K_o:
             succes, message = self.carte.charger_carte()
+            if succes:
+                # Mettre à jour les tuiles dans la caméra
+                self.camera.empty()
+                self.camera.add(self.carte.tuiles)
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
         elif key == pygame.K_s:
@@ -211,6 +231,10 @@ class Editeur:
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
         elif key == pygame.K_n:
             succes, message = self.carte.nouvelle_carte()
+            if succes:
+                # Mettre à jour les tuiles dans la caméra
+                self.camera.empty()
+                self.camera.add(self.carte.tuiles)
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
 
@@ -227,12 +251,13 @@ class Editeur:
 
     def appliquer_decalage(self) -> None:
         """Applique le décalage de la caméra selon les mouvements."""
-        self.decalage_camera.x += (self.mouvement_horizontal[1] - self.mouvement_horizontal[0]) * VITESSE_CAMERA
-        self.decalage_camera.y += (self.mouvement_vertical[1] - self.mouvement_vertical[0]) * VITESSE_CAMERA
+        dx = (self.mouvement_horizontal[1] - self.mouvement_horizontal[0]) * VITESSE_CAMERA
+        dy = (self.mouvement_vertical[1] - self.mouvement_vertical[0]) * VITESSE_CAMERA
+        self.camera.deplacer(dx, dy)
 
     def effacer_tuiles(self) -> None:
         """Efface toutes les tuiles de la carte actuelle."""
-        self.carte.carte.clear()
+        self.carte = Carte(self.carte.images_tuiles, self.carte.taille_tuile)
 
 
 Editeur().lancer()
