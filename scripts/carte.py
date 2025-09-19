@@ -6,7 +6,7 @@ import pygame
 import json
 import os
 from tkinter import filedialog
-from scripts.tuile import Tuile, pos_en_str
+from scripts.tuile import Decoration, Tuile, pos_en_str
 from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN
 from scripts.type import TypeTuile
 
@@ -34,8 +34,10 @@ class Carte:
         """
         self.taille_tuile: int = taille
         self.carte: dict[str, Tuile] = {}
+        self.carte_deco: dict[str, Decoration] = {}
         self.nom_fichier: Optional[str] = None
         self.images_tuiles: dict[str, list[pygame.Surface]] = images_tuiles
+        self.tuiles: pygame.sprite.Group[Tuile] = pygame.sprite.Group() # pyright: ignore[reportInvalidTypeArguments]
 
     def tuile_presente(self, position: Sequence[int]) -> bool:
         """Vérifie si une tuile existe à la position donnée.
@@ -57,12 +59,9 @@ class Carte:
             type_tuile (TypeTuile): Type de la tuile à ajouter
         """
         cle_position: str = f"{int(x)};{int(y)}"
-        self.carte[cle_position] = Tuile(
-            type_tuile,
-            (x, y),
-            0,
-            self.images_tuiles[type_tuile][0]
-        )
+        tuile = Tuile(type_tuile, (x, y), 0, self.images_tuiles[type_tuile][0])
+        self.carte[cle_position] = tuile
+        self.tuiles.add(tuile)
 
     def enlever_tuile(self, x: int, y: int) -> None:
         """Supprime la tuile à la position spécifiée.
@@ -71,6 +70,7 @@ class Carte:
             x (int): Coordonnée X
             y (int): Coordonnée Y
         """
+        self.tuiles.remove(self.carte[f"{x};{y}"])
         del self.carte[f"{x};{y}"]
 
     def remplir(self) -> None:
@@ -94,20 +94,20 @@ class Carte:
         # Cas où la tuile est isolée
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 0:
             print(f"Une tuile {tuile} est au milieu de nulle part !!!")
-            self.enlever_tuile(*tuile.pos)
+            self.enlever_tuile(tuile.rect.x // TAILLE_TUILE, tuile.rect.y // TAILLE_TUILE)
             return
 
         # Supprime les tuiles diagonales seules si pas de voisins droits
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 1:
             print(f"La tuile {tuile} a une seule diagonale")
-            self.enlever_tuile(*voisins_diagonaux[0].pos)
+            self.enlever_tuile(voisins_diagonaux[0].rect.x // TAILLE_TUILE, voisins_diagonaux[0].rect.y // TAILLE_TUILE)
             return
 
         # Pour les autres configurations, on comble les vides selon les voisins
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux in (2, 3, 4):
             # Décalage vertical pour 2 tuiles ou ajout de tuiles pour 3-4 tuiles
             if nombre_voisins_diagonaux == 2:
-                tuile.pos = (tuile.pos[0], tuile.pos[1] + 1)
+                tuile.rect.y += TAILLE_TUILE
                 self.ajouter_profondeur(tuile)
                 for voisin in voisins_diagonaux:
                     self.ajouter_profondeur(voisin)
@@ -131,7 +131,7 @@ class Carte:
         """
         voisins: list[Tuile] = []
         for decalage_x, decalage_y in decalages:
-            position: tuple[int, int] = (tuile.pos[0] + decalage_x, tuile.pos[1] + decalage_y)
+            position: tuple[int, int] = (tuile.rect.x // TAILLE_TUILE + decalage_x, tuile.rect.y // TAILLE_TUILE + decalage_y)
             if self.tuile_presente(position):
                 voisins.append(self.carte[pos_en_str(position)])
         return voisins
@@ -143,12 +143,12 @@ class Carte:
             tuile (Tuile): Tuile centrale
             voisins (list[Tuile]): Liste des tuiles voisines
         """
-        positions_x: set[int] = {voisin.pos[0] for voisin in voisins}
-        positions_y: set[int] = {voisin.pos[1] for voisin in voisins}
+        positions_x: set[int] = {voisin.rect.x // TAILLE_TUILE for voisin in voisins}
+        positions_y: set[int] = {voisin.rect.y // TAILLE_TUILE for voisin in voisins}
         for x in positions_x:
-            self.ajouter_tuile(x, tuile.pos[1], tuile.type)
+            self.ajouter_tuile(x, tuile.rect.y // TAILLE_TUILE, tuile.type)
         for y in positions_y:
-            self.ajouter_tuile(tuile.pos[0], y, tuile.type)
+            self.ajouter_tuile(tuile.rect.x // TAILLE_TUILE, y, tuile.type)
 
     def ajouter_profondeur(self, tuile: Tuile) -> None:
         """Ajoute des tuiles en profondeur sous la tuile donnée.
@@ -157,7 +157,7 @@ class Carte:
             tuile (Tuile): Tuile de référence
         """
         for profondeur in range(1, PROFONDEUR_MAX):
-            self.ajouter_tuile(tuile.pos[0], tuile.pos[1] + profondeur, tuile.type)
+            self.ajouter_tuile(tuile.rect.x // TAILLE_TUILE, (tuile.rect.y // TAILLE_TUILE) + profondeur, tuile.type)
 
     #region Fonctions pour la génération en îles
     def _creer_triangle_inverse(self, x_base_gauche: int, y_base: int, largeur: int, hauteur: int, type_tuile: TypeTuile) -> None:
@@ -291,7 +291,7 @@ class Carte:
                 (0, 1)    # Bas
             ]
             for decalage in decalages_directions:
-                position: tuple[int, int] = (tuile.pos[0] + decalage[0], tuile.pos[1] + decalage[1])
+                position: tuple[int, int] = ((tuile.rect.x // TAILLE_TUILE) + decalage[0], (tuile.rect.y // TAILLE_TUILE) + decalage[1])
                 if self.tuile_presente(position):
                     voisin: Tuile = self.carte[pos_en_str(position)]
                     if tuile.type == voisin.type:
@@ -310,8 +310,7 @@ class Carte:
             surface (pygame.Surface): Surface Pygame où afficher les tuiles
             decalage_camera (pygame.Vector2): Décalage de la caméra (x, y)
         """
-        for tuile in self.carte.values():
-            tuile.afficher(surface, decalage_camera)
+        self.tuiles.draw(surface)
 
     def enregistrer_carte(self) -> tuple[bool, str]:
         """Enregistre la carte actuelle dans un fichier JSON.
@@ -411,4 +410,3 @@ class Carte:
 
         except Exception as e:
             return False, f"Erreur lors de la création d'une nouvelle carte : {str(e)}"
-

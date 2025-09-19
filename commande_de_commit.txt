@@ -1,10 +1,12 @@
-git commit -m "Préparation à la gestion de la décoration
+git commit -m "Fin de la pygamisation du projet avec l'utilisation complète de Pygame pour l'affichage et la gestion des éléments graphiques.
+Changements majeurs :
+- Introduction d’une nouvelle classe de base ElementSprite pour regrouper les attributs et méthodes communs à Tuile et Decoration.
+- Mise à jour des classes Tuile et Decoration afin d’hériter de ElementSprite, simplifiant ainsi leur implémentation.
+- Modification de la classe Carte pour gérer les tuiles via un groupe de sprites, améliorant le rendu et l’organisation.
+- Ajout d’une classe Camera permettant de gérer le mouvement de la caméra et le rendu des sprites visibles.
 
-- Introduit une classe de base Décoration avec positions flottantes et type TypeDecoration
-- Fait hériter Tuile de Décoration pour améliorer la réutilisation du code
-- Ajoute les types de décoration aux paramètres
-- Supprime le fichier en double carte_procedurale.py et renomme l'autre en carte.py
-- Ajuste les méthodes liées pour assurer la cohérence
-- Renomme quelques fonctions de main.py
-- Gère mieux l'affichage de la carte générée (possibilité de zoomer facilement, mais en code)
-- Refactorisations très mineures des constantes de redessinage dans scripts/parametres/__init__.py"
+Changements mineurs :
+- Ajustement du type des positions des éléments graphiques (tuile: int, decoration: float) pour une meilleure lisibilité et cohérence.
+- Harmonisation des types de paramètres pour une meilleure clarté et cohérence dans tout le code.
+- Suppression du fichier en double et inutilisé scripts/principal/noyau/tuile.py au profit de scripts/tuile.py.
+- La base de la gestion des décorations est légèrement posée, mais pas du tout implémentée ni intégrée dans le rendu."

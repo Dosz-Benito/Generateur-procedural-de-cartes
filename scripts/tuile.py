@@ -1,9 +1,9 @@
 """Module définissant la classe Tuile pour représenter les éléments de la carte."""
-
+# dans tuile.py, ajoute une classe héritant de pygame.sprite.Sprite et héritée de Tuile et Decoration. Elle contient tous les attributs et fonctions qui seront communs à Tuile et Decoration (rect, image, en_dict, .... avec les types appropriés)
 from __future__ import annotations
 from typing import Any, Sequence
 import pygame
-from scripts.type import TypeTuile, TypeDecoration
+from scripts.type import TypeElement, TypeTuile, TypeDecoration
 
 TAILLE_TUILE = 16
 
@@ -12,8 +12,76 @@ def pos_en_str(pos: Sequence[int]) -> str:
     """Convertit une position (x, y) en chaîne de caractères."""
     return f"{int(pos[0])};{int(pos[1])}"
 
+class ElementSprite(pygame.sprite.Sprite):
+    """Classe de base pour les éléments sprite comme Tuile et Decoration.
 
-class Decoration(pygame.sprite.Sprite):
+    Cette classe contient les attributs et méthodes communs à tous les éléments
+    sprite du jeu, tels que la position, l'image, le rectangle, etc.
+    """
+
+    def __init__(self, type: TypeElement, index: int, pos: tuple[float, float], image: pygame.Surface) -> None:
+        """Initialise un nouvel élément sprite.
+
+        Args:
+            type (TypeElement): Type de l'élément
+            index (int): Index de l'image
+            pos (tuple[float, float]): Position (x, y) flottante absolue (en pixels)
+            image (pygame.Surface): Surface Pygame de l'image
+        """
+        super().__init__()
+        self.type: TypeElement = type
+        self.index: int = index
+
+        self.rect: pygame.Rect = image.get_rect(topleft=(pos[0] * TAILLE_TUILE, pos[1] * TAILLE_TUILE))
+        self.image: pygame.Surface = image
+
+
+    def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None:
+        """Affiche l'élément sur la surface donnée avec un décalage.
+
+        Args:
+            surface (pygame.Surface): Surface où afficher
+            decalage (pygame.Vector2): Décalage de la caméra
+        """
+        surface.blit(
+            self.image,
+            (self.rect.x - decalage[0], self.rect.y - decalage[1])
+        )
+
+    def en_dict(self) -> dict[str, Any]:
+        """Convertit l'élément en dictionnaire pour la sérialisation.
+
+        Returns:
+            dict: Dictionnaire avec les informations de l'élément
+        """
+        return {
+            "type": self.type,
+            "index": self.index,
+            "pos": (self.rect.x / TAILLE_TUILE, self.rect.y / TAILLE_TUILE)
+        }
+
+    @classmethod
+    def de_dict(cls, infos: dict[str, Any], image: pygame.Surface) -> ElementSprite:
+        """Crée un élément décoratif à partir d'un dictionnaire.
+
+        Args:
+            infos (dict[str, Any]): Dictionnaire contenant les informations de l'élément
+            image (pygame.Surface): Surface Pygame de l'image de l'élément
+
+        Returns:
+            Decoration: Nouvelle instance de Decoration
+        """
+        instance = cls(infos["type"], infos["index"], (0.0, 0.0), image)
+        instance.rect.topleft = (infos["pos"][0] * TAILLE_TUILE, infos["pos"][1] * TAILLE_TUILE)
+        return instance
+
+    def __repr__(self) -> str:
+        """Représentation string de l'élément pour le débogage."""
+        return f"ElementSprite(type={self.type}, index={self.index}, pos=({self.rect.x / TAILLE_TUILE}, {self.rect.y / TAILLE_TUILE}))"
+
+
+
+class Decoration(ElementSprite):
     """Représente un élément décoratif dans la carte du jeu.
 
     Cette classe de base gère l'affichage, la sérialisation et les propriétés
@@ -21,7 +89,7 @@ class Decoration(pygame.sprite.Sprite):
     Elle est conçue pour être héritée par des classes spécifiques comme Tuile.
     """
 
-    def __init__(self, type: TypeDecoration, index: int, pos: tuple[float, float], image: pygame.Surface, taille: int = TAILLE_TUILE) -> None:
+    def __init__(self, type: TypeDecoration, index: int, pos: tuple[float, float], image: pygame.Surface) -> None:
         """Initialise un nouvel élément décoratif.
 
         Args:
@@ -29,72 +97,11 @@ class Decoration(pygame.sprite.Sprite):
             index (int): Index de l'image dans la liste des images
             pos (tuple[float, float]): Position (x, y) flottante dans la carte
             image (pygame.Surface): Surface Pygame de l'image de l'élément
-            taille (int, optional): Taille de l'élément en pixels. Défaut à TAILLE_TUILE.
         """
-        super().__init__()
-        self.type: TypeDecoration = type
-        self.index: int = index
-        self.pos: tuple[float, float] = pos
-        self.taille: int = taille
-        self._image: pygame.Surface = image.copy()
+        super().__init__(type, index, pos, image)
+        self.type: TypeDecoration # pyright: ignore[reportIncompatibleVariableOverride]
 
-    @property
-    def image(self) -> pygame.Surface:
-        """Retourne la surface image actuelle de l'élément décoratif."""
-        return self._image
-
-    @image.setter
-    def image(self, nouvelle_image: pygame.Surface) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
-        """Modifie la surface image de l'élément décoratif.
-
-        Args:
-            nouvelle_image (pygame.Surface): Nouvelle surface Pygame à utiliser
-        """
-        self._image = nouvelle_image.copy()
-
-    def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None:
-        """Affiche l'élément décoratif sur la surface donnée avec un décalage.
-
-        Args:
-            surface (pygame.Surface): Surface Pygame où afficher l'élément
-            decalage (pygame.Vector2): Décalage de la caméra (x, y)
-        """
-        surface.blit(
-            self.image,
-            (self.pos[0] * self.taille - decalage[0], self.pos[1] * self.taille - decalage[1])
-        )
-
-    def en_dict(self) -> dict[str, Any]:
-        """Convertit l'élément décoratif en dictionnaire pour la sérialisation.
-
-        Returns:
-            Dictionnaire contenant les informations de l'élément décoratif
-        """
-        return {
-            "type": self.type,
-            "index": self.index,
-            "pos": self.pos
-        }
-
-    @classmethod
-    def de_dict(cls, infos: dict, image: pygame.Surface) -> Decoration:
-        """Crée un élément décoratif à partir d'un dictionnaire.
-
-        Args:
-            infos (dict): Dictionnaire contenant les informations de l'élément
-            image (pygame.Surface): Surface Pygame de l'image de l'élément
-
-        Returns:
-            Decoration: Nouvelle instance de Decoration
-        """
-        return cls(infos["type"], infos["index"], tuple(infos["pos"]), image)
-
-    def __repr__(self) -> str:
-        """Représentation string de l'élément décoratif pour le débogage."""
-        return f"Decoration(type={self.type}, index={self.index}, pos={self.pos})"
-
-
-class Tuile(Decoration):
+class Tuile(ElementSprite):
     """Représente une tuile individuelle dans la carte du jeu.
 
     Cette classe hérite de Decoration et spécialise le comportement pour les tuiles
@@ -110,8 +117,8 @@ class Tuile(Decoration):
             index (int): Index de l'image dans la liste des images
             image (pygame.Surface): Surface Pygame de l'image de la tuile
         """
-        super().__init__(type, index, pos, image) # pyright: ignore[reportArgumentType]
-        self.pos: tuple[int, int] # pyright: ignore[reportIncompatibleVariableOverride]
+        super().__init__(type, index, pos, image)
+
         self.type: TypeTuile # pyright: ignore[reportIncompatibleVariableOverride]
 
     @classmethod
@@ -125,8 +132,10 @@ class Tuile(Decoration):
         Returns:
             Tuile: Nouvelle instance de Tuile
         """
-        return Tuile(infos["type"], tuple(infos["pos"]), infos["index"], image)
+        instance = cls(infos["type"], (0, 0), infos["index"], image)
+        instance.rect.topleft = (infos["pos"][0] * TAILLE_TUILE, infos["pos"][1] * TAILLE_TUILE)
+        return instance
 
     def __repr__(self) -> str:
         """Représentation string de la tuile pour le débogage."""
-        return f"Tuile(type={self.type}, pos={(int(self.pos[0]), int(self.pos[1]))}, index={self.index})"
+        return f"Tuile(type={self.type}, pos=({self.rect.x / TAILLE_TUILE}, {self.rect.y / TAILLE_TUILE}), index={self.index})"

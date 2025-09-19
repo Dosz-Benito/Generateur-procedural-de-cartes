@@ -4,7 +4,7 @@ import pygame
 from scripts.type import TypeDecoration, TypeTuile
 
 #* Jeu en général
-TAILLE_ECRAN: tuple[float, float] = (1690, 800)
+TAILLE_ECRAN: tuple[int, int] = (1690, 800)
 TAILLE_AFFICHAGE: tuple[float, float] = (TAILLE_ECRAN[0] * 0.98, TAILLE_ECRAN[1] * 0.98)
 FPS: int = 60
 VITESSE_CAMERA: int = 10
