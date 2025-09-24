@@ -1,12 +1,15 @@
-git commit -m "Fin de la pygamisation du projet avec l'utilisation complète de Pygame pour l'affichage et la gestion des éléments graphiques.
+git commit -m "Ajout du positionnement en pixels et du support des décorations dans la carte
+
 Changements majeurs :
-- Introduction d’une nouvelle classe de base ElementSprite pour regrouper les attributs et méthodes communs à Tuile et Decoration.
-- Mise à jour des classes Tuile et Decoration afin d’hériter de ElementSprite, simplifiant ainsi leur implémentation.
-- Modification de la classe Carte pour gérer les tuiles via un groupe de sprites, améliorant le rendu et l’organisation.
-- Ajout d’une classe Camera permettant de gérer le mouvement de la caméra et le rendu des sprites visibles.
+- Passe des indices de tuiles aux coordonnées en pixels (positionnement plus flexible)
+- Ajoute la génération de décorations avec placement aléatoire sur les tuiles
+- Met à jour le format de sauvegarde/chargement pour inclure les décorations
 
 Changements mineurs :
-- Ajustement du type des positions des éléments graphiques (tuile: int, decoration: float) pour une meilleure lisibilité et cohérence.
-- Harmonisation des types de paramètres pour une meilleure clarté et cohérence dans tout le code.
-- Suppression du fichier en double et inutilisé scripts/principal/noyau/tuile.py au profit de scripts/tuile.py.
-- La base de la gestion des décorations est légèrement posée, mais pas du tout implémentée ni intégrée dans le rendu."
+- Simplifie la structure des fichiers de sauvegarde avec les clés 'tuiles' et 'deco' (au lieu de 'carte')
+- Suppression de TAILLE_TUILE puisqu'on utilise des positions en pixels
+- Ajuste l'affichage des messages de débogage (leur position y) pour éviter les chevauchements
+
+Informations :
+- La génération de la décoration est précaire et s'applique aléatoirement sur les tuiles (aucune cohérence visuelle)
+- Les anciens fichiers de sauvegarde sont supprimés (à cause du changement de format), il faut en recréer d'autres"

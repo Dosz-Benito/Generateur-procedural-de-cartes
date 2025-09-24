@@ -467,12 +467,6 @@ def exporter_json_unity(self, fichier: str):
 Projet développé par **do SANTOS ZOUNON Bénito K.**
 
 Pour contribuer :
-1. Fork le projet
-2. Créer une branche pour votre fonctionnalité
-3. Commiter vos changements
-4. Pousser vers la branche
-5. Ouvrir une Pull Request
+1. Impossible de contribuer, projet strictement personnel 😬😉🤪😅🙏😎
 
 ---
-
-*Documentation générée automatiquement - Dernière mise à jour : 2025*
