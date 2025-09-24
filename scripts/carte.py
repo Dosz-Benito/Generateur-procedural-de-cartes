@@ -8,9 +8,7 @@ import os
 from tkinter import filedialog
 from scripts.tuile import Decoration, Tuile, pos_en_str
 from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN
-from scripts.type import TypeTuile
-
-TAILLE_TUILE = 16
+from scripts.type import TypeDecoration, TypeTuile
 
 # Constantes pour la génération
 PROFONDEUR_MAX = 11
@@ -26,56 +24,79 @@ class Carte:
     supprimer et manipuler les tuiles selon les règles de génération.
     """
 
-    def __init__(self, images_tuiles: dict[str, list[pygame.Surface]], taille: int = TAILLE_TUILE) -> None:
+    def __init__(self, images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]]) -> None:
         """Initialise une nouvelle carte.
-
-        Args:
-            taille (int): Taille en pixels d'une tuile
         """
-        self.taille_tuile: int = taille
-        self.carte: dict[str, Tuile] = {}
-        self.carte_deco: dict[str, Decoration] = {}
         self.nom_fichier: Optional[str] = None
-        self.images_tuiles: dict[str, list[pygame.Surface]] = images_tuiles
+
+        self.carte_tuiles: dict[str, Tuile] = {}
+        self.images_tuiles: dict[TypeTuile, list[pygame.Surface]] = images_tuiles
         self.tuiles: pygame.sprite.Group[Tuile] = pygame.sprite.Group() # pyright: ignore[reportInvalidTypeArguments]
 
-    def tuile_presente(self, position: Sequence[int]) -> bool:
+        self.carte_deco: dict[str, Decoration] = {}
+        self.images_deco: dict[TypeDecoration, list[pygame.Surface]] = images_deco
+        self.tuiles_a_decorer: set[Tuile] = set()
+        self.deco: pygame.sprite.Group[Decoration] = pygame.sprite.Group() # pyright: ignore[reportInvalidTypeArguments]
+
+    def tuile_presente(self, pos_pixels: tuple[float, float]) -> bool:
         """Vérifie si une tuile existe à la position donnée.
 
         Args:
-            position (Sequence[int]): Coordonnées (x, y) à vérifier
+            pos_pixels (tuple[float, float]): Coordonnées (x, y) en pixels à vérifier
 
         Returns:
             bool: True si une tuile existe à cette position
         """
-        return pos_en_str(position) in self.carte
+        return pos_en_str(pos_pixels) in self.carte_tuiles
 
-    def ajouter_tuile(self, x: int, y: int, type_tuile: TypeTuile) -> None:
+    def ajouter_tuile(self, pos_pixels: tuple[float, float], type_tuile: TypeTuile) -> None:
         """Ajoute une nouvelle tuile à la position spécifiée.
 
         Args:
-            x (int): Coordonnée X
-            y (int): Coordonnée Y
+            pos_pixels (tuple[float, float]): Position en pixels absolus
             type_tuile (TypeTuile): Type de la tuile à ajouter
         """
-        cle_position: str = f"{int(x)};{int(y)}"
-        tuile = Tuile(type_tuile, (x, y), 0, self.images_tuiles[type_tuile][0])
-        self.carte[cle_position] = tuile
+        cle_position: str = pos_en_str(pos_pixels)
+        tuile = Tuile(type_tuile, 0, pos_pixels, self.images_tuiles[type_tuile][0])
+        self.carte_tuiles[cle_position] = tuile
         self.tuiles.add(tuile)
 
-    def enlever_tuile(self, x: int, y: int) -> None:
+    def enlever_tuile(self, pos_pixels: tuple[float, float]) -> None:
         """Supprime la tuile à la position spécifiée.
+
+        Args:
+            pos_pixels (tuple[float, float]): Position en pixels
+        """
+        cle = pos_en_str(pos_pixels)
+        self.tuiles.remove(self.carte_tuiles[cle])
+        del self.carte_tuiles[cle]
+
+    def ajouter_deco(self, rect: pygame.FRect, type_tuile: TypeDecoration, index: Optional[int]) -> None:
+        """Ajoute une nouvelle décoration à la position spécifiée.
+
+        Args:
+            x (int): Coordonnée X
+            y (int): Coordonnée Y
+            type_tuile (TypeDecoration): Type de la décoration à ajouter
+        """
+        index = index or random.choice(range(len(self.images_deco[type_tuile])))
+        deco = Decoration(type_tuile, index, rect.topleft, self.images_deco[type_tuile][index])
+        self.carte_deco[pos_en_str(rect.topleft)] = deco
+        self.deco.add(deco)
+
+    def enlever_deco(self, x: int, y: int) -> None:
+        """Supprime la décoration à la position spécifiée.
 
         Args:
             x (int): Coordonnée X
             y (int): Coordonnée Y
         """
-        self.tuiles.remove(self.carte[f"{x};{y}"])
-        del self.carte[f"{x};{y}"]
+        self.deco.remove(self.carte_deco[pos_en_str((x, y))])
+        del self.carte_deco[pos_en_str((x, y))]
 
     def remplir(self) -> None:
         """Remplit les espaces vides et fermés de la carte avec des tuiles."""
-        for tuile in self.carte.copy().values():
+        for tuile in self.carte_tuiles.copy().values():
             self.entourer(tuile)
 
     def entourer(self, tuile: Tuile) -> None:
@@ -93,23 +114,20 @@ class Carte:
 
         # Cas où la tuile est isolée
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 0:
-            print(f"Une tuile {tuile} est au milieu de nulle part !!!")
-            self.enlever_tuile(tuile.rect.x // TAILLE_TUILE, tuile.rect.y // TAILLE_TUILE)
+            self.enlever_tuile((tuile.rect.x, tuile.rect.y))
             return
 
         # Supprime les tuiles diagonales seules si pas de voisins droits
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux == 1:
-            print(f"La tuile {tuile} a une seule diagonale")
-            self.enlever_tuile(voisins_diagonaux[0].rect.x // TAILLE_TUILE, voisins_diagonaux[0].rect.y // TAILLE_TUILE)
+            self.enlever_tuile((voisins_diagonaux[0].rect.x, voisins_diagonaux[0].rect.y))
             return
 
         # Pour les autres configurations, on comble les vides selon les voisins
         if nombre_voisins_droits == 0 and nombre_voisins_diagonaux in (2, 3, 4):
             # Décalage vertical pour 2 tuiles ou ajout de tuiles pour 3-4 tuiles
             if nombre_voisins_diagonaux == 2:
-                tuile.rect.y += TAILLE_TUILE
-                self.ajouter_profondeur(tuile)
-                for voisin in voisins_diagonaux:
+                tuile.rect.y += 16
+                for voisin in (*voisins_diagonaux, tuile):
                     self.ajouter_profondeur(voisin)
             else:
                 self._combler_espaces_vides(tuile, voisins_diagonaux)
@@ -119,21 +137,32 @@ class Carte:
         if nombre_voisins_droits == 1 and nombre_voisins_diagonaux in (2, 3, 4):
             self._combler_espaces_vides(tuile, voisins_diagonaux)
 
+    def generer_deco(self) -> None:
+        """Génère des décorations aléatoires sur les tuiles existantes."""
+        for tuile in self.carte_tuiles.values():
+            if random.random() < 0.1:
+                type_deco: TypeDecoration = random.choice(list(self.images_deco.keys()))
+                index = random.choice(range(len(self.images_deco[type_deco])))
+                image = self.images_deco[type_deco][index]
+                rect = pygame.FRect()
+                rect.midbottom = tuile.rect.midtop
+                self.ajouter_deco(rect, type_deco, index)
+
     def _tuiles_autour(self, tuile: Tuile, decalages: list[tuple[int, int]] = INDEXS_DECALAGES) -> list[Tuile]:
         """Renvoie la liste des tuiles présentes autour de la tuile selon les décalages donnés.
 
         Args:
             tuile (Tuile): Tuile centrale
-            decalages (list[tuple[int, int]]): Liste des décalages à vérifier
+            decalages (list[tuple[int, int]]): Liste des décalages en tuiles
 
         Returns:
             list[Tuile]: Liste des tuiles voisines trouvées
         """
         voisins: list[Tuile] = []
         for decalage_x, decalage_y in decalages:
-            position: tuple[int, int] = (tuile.rect.x // TAILLE_TUILE + decalage_x, tuile.rect.y // TAILLE_TUILE + decalage_y)
-            if self.tuile_presente(position):
-                voisins.append(self.carte[pos_en_str(position)])
+            pos_pixels = (tuile.rect.x + decalage_x * 16, tuile.rect.y + decalage_y * 16)
+            if self.tuile_presente(pos_pixels):
+                voisins.append(self.carte_tuiles[pos_en_str(pos_pixels)])
         return voisins
 
     def _combler_espaces_vides(self, tuile: Tuile, voisins: list[Tuile]) -> None:
@@ -143,12 +172,12 @@ class Carte:
             tuile (Tuile): Tuile centrale
             voisins (list[Tuile]): Liste des tuiles voisines
         """
-        positions_x: set[int] = {voisin.rect.x // TAILLE_TUILE for voisin in voisins}
-        positions_y: set[int] = {voisin.rect.y // TAILLE_TUILE for voisin in voisins}
+        positions_x: set[float] = {voisin.rect.x for voisin in voisins}
+        positions_y: set[float] = {voisin.rect.y for voisin in voisins}
         for x in positions_x:
-            self.ajouter_tuile(x, tuile.rect.y // TAILLE_TUILE, tuile.type)
+            self.ajouter_tuile((x, tuile.rect.y), tuile.type)
         for y in positions_y:
-            self.ajouter_tuile(tuile.rect.x // TAILLE_TUILE, y, tuile.type)
+            self.ajouter_tuile((tuile.rect.x, y), tuile.type)
 
     def ajouter_profondeur(self, tuile: Tuile) -> None:
         """Ajoute des tuiles en profondeur sous la tuile donnée.
@@ -157,132 +186,141 @@ class Carte:
             tuile (Tuile): Tuile de référence
         """
         for profondeur in range(1, PROFONDEUR_MAX):
-            self.ajouter_tuile(tuile.rect.x // TAILLE_TUILE, (tuile.rect.y // TAILLE_TUILE) + profondeur, tuile.type)
+            self.ajouter_tuile((tuile.rect.x, tuile.rect.y + profondeur * 16), tuile.type)
 
     #region Fonctions pour la génération en îles
-    def _creer_triangle_inverse(self, x_base_gauche: int, y_base: int, largeur: int, hauteur: int, type_tuile: TypeTuile) -> None:
+    def _creer_triangle_inverse(self, x_base_gauche: float, y_base: float, largeur: float, hauteur: float, type_tuile: TypeTuile) -> None:
         """
         Crée une île en forme de triangle inversé (pyramide renversée).
 
         Args:
-            x_base_gauche (int): Coordonnée X du coin en bas à gauche de la pyramide
-            y_base (int): Coordonnée Y du coin en bas à gauche de la pyramide
-            largeur (int): Largeur de la base du triangle
-            hauteur (int): Nombre de niveaux verticaux du triangle
+            x_base_gauche (float): Coordonnée X du coin en bas à gauche de la pyramide en pixels
+            y_base (float): Coordonnée Y du coin en bas à gauche de la pyramide en pixels
+            largeur (float): Largeur de la base du triangle en pixels
+            hauteur (float): Hauteur du triangle en pixels
             type_tuile (TypeTuile): Type de tuile à utiliser
         """
-        for niveau in range(hauteur):
-            for decalage_x in range(largeur - 2 * niveau):
-                self.ajouter_tuile(x_base_gauche + decalage_x + niveau, y_base - niveau, type_tuile)
+        niveaux = int(hauteur / 16)
+        largeur_tuiles = int(largeur / 16)
+        for niveau in range(niveaux):
+            for decalage_x in range(largeur_tuiles - 2 * niveau):
+                self.ajouter_tuile((x_base_gauche + decalage_x * 16 + niveau * 16, y_base - niveau * 16), type_tuile)
 
 
-    def _creer_triangle_normal(self, x_base_gauche: int, y_base: int, hauteur: int, type_tuile: TypeTuile) -> None:
+    def _creer_triangle_normal(self, x_base_gauche: float, y_base: float, hauteur: float, type_tuile: TypeTuile) -> None:
         """
         Crée une île en forme de triangle normal (pyramide classique).
 
         Args:
-            x_base_gauche (int): Coordonnée X du coin en bas à gauche du triangle
-            y_base (int): Coordonnée Y du coin en bas à gauche du triangle
-            hauteur (int): Nombre de niveaux verticaux
+            x_base_gauche (float): Coordonnée X du coin en bas à gauche du triangle en pixels
+            y_base (float): Coordonnée Y du coin en bas à gauche du triangle en pixels
+            hauteur (float): Hauteur du triangle en pixels
             type_tuile (TypeTuile): Type de tuile à utiliser
         """
-        for niveau in range(hauteur):
+        niveaux = int(hauteur / 16)
+        for niveau in range(niveaux):
             # Largeur de chaque niveau augmente de 2 à partir de 1 tuile
             for decalage_x in range(1 + 2 * niveau):
-                self.ajouter_tuile(x_base_gauche + decalage_x, y_base - niveau, type_tuile)
+                self.ajouter_tuile((x_base_gauche + decalage_x * 16, y_base - niveau * 16), type_tuile)
 
 
-    def _creer_pont(self, x_base_gauche: int, y_base: int, largeur: int, type_tuile: TypeTuile) -> None:
+    def _creer_pont(self, x_base_gauche: float, y_base: float, largeur: float, type_tuile: TypeTuile) -> None:
         """
         Crée une île en forme de pont horizontal avec quelques trous.
 
         Args:
-            x_base_gauche (int): Coordonnée X du coin en bas à gauche du pont
-            y_base (int): Coordonnée Y du coin en bas à gauche du pont
-            largeur (int): Longueur totale du pont
+            x_base_gauche (float): Coordonnée X du coin en bas à gauche du pont en pixels
+            y_base (float): Coordonnée Y du coin en bas à gauche du pont en pixels
+            largeur (float): Longueur totale du pont en pixels
             type_tuile (TypeTuile): Type de tuile à utiliser
         """
-        for decalage_x in range(largeur):
-            self.ajouter_tuile(x_base_gauche + decalage_x, y_base, type_tuile)
-        for decalage_x in range(0, largeur, 3):
-            self.ajouter_tuile(x_base_gauche + decalage_x, y_base - 1, type_tuile)
+        largeur_tuiles = int(largeur / 16)
+        for decalage_x in range(largeur_tuiles):
+            self.ajouter_tuile((x_base_gauche + decalage_x * 16, y_base), type_tuile)
+        for decalage_x in range(0, largeur_tuiles, 3):
+            self.ajouter_tuile((x_base_gauche + decalage_x * 16, y_base - 16), type_tuile)
 
 
-    def _creer_triangle_vertical(self, x_base_gauche: int, y_base: int, largeur: int, hauteur: int, type_tuile: TypeTuile) -> None:
+    def _creer_triangle_vertical(self, x_base_gauche: float, y_base: float, largeur: float, hauteur: float, type_tuile: TypeTuile) -> None:
         """
         Crée un triangle vertical penché, avec une largeur qui diminue à chaque niveau.
 
         Args:
-            x_base_gauche: Coordonnée X du coin en bas à gauche du triangle.
-            y_base: Coordonnée Y du coin en bas à gauche du triangle.
-            largeur: Largeur initiale du triangle.
-            hauteur: Nombre de niveaux verticaux.
+            x_base_gauche: Coordonnée X du coin en bas à gauche du triangle en pixels.
+            y_base: Coordonnée Y du coin en bas à gauche du triangle en pixels.
+            largeur: Largeur initiale du triangle en pixels.
+            hauteur: Hauteur du triangle en pixels.
         """
-        for niveau in range(hauteur):
-            for decalage_x in range(largeur - niveau):
-                self.ajouter_tuile(x_base_gauche + decalage_x + niveau, y_base - niveau, type_tuile)
+        niveaux = int(hauteur / 16)
+        largeur_tuiles = int(largeur / 16)
+        for niveau in range(niveaux):
+            for decalage_x in range(largeur_tuiles - niveau):
+                self.ajouter_tuile((x_base_gauche + decalage_x * 16 + niveau * 16, y_base - niveau * 16), type_tuile)
 
 
-    def _creer_escalier(self, x_base_gauche: int, y_base: int, hauteur: int, type_tuile: TypeTuile) -> None:
+    def _creer_escalier(self, x_base_gauche: float, y_base: float, hauteur: float, type_tuile: TypeTuile) -> None:
         """
         Crée un escalier pour relier des îles éloignées.
 
         Args:
-            x_base_gauche: Coordonnée X du coin en bas à gauche du premier bloc.
-            y_base: Coordonnée Y du coin en bas à gauche du premier bloc.
-            hauteur: Nombre de marches de l'escalier.
+            x_base_gauche: Coordonnée X du coin en bas à gauche du premier bloc en pixels.
+            y_base: Coordonnée Y du coin en bas à gauche du premier bloc en pixels.
+            hauteur: Hauteur de l'escalier en pixels.
         """
-        x_courant: int = x_base_gauche
-        y_courant: int = y_base
-        for _ in range(hauteur):
+        niveaux = int(hauteur / 16)
+        x_courant: float = x_base_gauche
+        y_courant: float = y_base
+        for _ in range(niveaux):
             largeur_marche: int = random.randint(2, 4)
             for decalage_x in range(largeur_marche):
-                self.ajouter_tuile(x_courant + decalage_x, y_courant, type_tuile)
-            x_courant += largeur_marche + 1
-            y_courant -= 1
+                self.ajouter_tuile((x_courant + decalage_x * 16, y_courant), type_tuile)
+            x_courant += (largeur_marche + 1) * 16
+            y_courant -= 16
 
 
-    def _creer_rectangle(self, x_base_gauche: int, y_base: int, largeur: int, hauteur: int, type_tuile: TypeTuile) -> None:
+    def _creer_rectangle(self, x_base_gauche: float, y_base: float, largeur: float, hauteur: float, type_tuile: TypeTuile) -> None:
         """
         Crée une île rectangulaire ou carrée.
 
         Args:
-            x_base_gauche: Coordonnée X du coin en bas à gauche du rectangle.
-            y_base: Coordonnée Y du coin en bas à gauche du rectangle.
-            largeur: Largeur horizontale du rectangle.
-            hauteur: Hauteur verticale du rectangle.
+            x_base_gauche: Coordonnée X du coin en bas à gauche du rectangle en pixels.
+            y_base: Coordonnée Y du coin en bas à gauche du rectangle en pixels.
+            largeur: Largeur horizontale du rectangle en pixels.
+            hauteur: Hauteur verticale du rectangle en pixels.
         """
-        for niveau in range(hauteur):
-            for decalage_x in range(largeur):
-                self.ajouter_tuile(x_base_gauche + decalage_x, y_base - niveau, type_tuile)
+        niveaux = int(hauteur / 16)
+        largeur_tuiles = int(largeur / 16)
+        for niveau in range(niveaux):
+            for decalage_x in range(largeur_tuiles):
+                self.ajouter_tuile((x_base_gauche + decalage_x * 16, y_base - niveau * 16), type_tuile)
 
-    def _hauteur_libre(self, x_debut: int, largeur: int) -> int:
+    def _hauteur_libre(self, x_debut: float, largeur: float) -> float:
         """Retourne la hauteur maximale où l'on peut placer une nouvelle île.
 
         Args:
-            x_debut (int): Position X de début de la zone
-            largeur (int): Largeur de la zone à vérifier
+            x_debut (float): Position X de début de la zone en pixels
+            largeur (float): Largeur de la zone à vérifier en pixels
 
         Returns:
-            int: Hauteur maximale pour éviter les superpositions
+            float: Hauteur maximale pour éviter les superpositions en pixels
         """
-        hauteur_max = HAUTEUR_MAX_GENERATION
+        hauteur_max = HAUTEUR_MAX_GENERATION * 16
         # Vérifie les tuiles existantes dans la zone horizontale
-        for decalage_x in range(largeur):
-            colonne_x: int = x_debut + decalage_x
-            for hauteur in range(HAUTEUR_MIN_GENERATION, hauteur_max + 1):
+        for decalage_x in range(0, int(largeur), 16):
+            colonne_x: float = x_debut + decalage_x
+            for hauteur in range(HAUTEUR_MIN_GENERATION * 16, int(hauteur_max) + 16, 16):
                 if not self.tuile_presente((colonne_x, hauteur)):
                     continue
                 # Ajuste la base pour éviter la superposition
-                if hauteur - 1 < hauteur_max:
-                    hauteur_max: int = hauteur - 1
-        return max(HAUTEUR_MIN_GENERATION, hauteur_max)
+                if hauteur - 16 < hauteur_max:
+                    hauteur_max = hauteur - 16
+        return max(HAUTEUR_MIN_GENERATION * 16, hauteur_max)
 
     #endregion
 
     def redessiner(self) -> None:
         """Met à jour les indices des sprites de toutes les tuiles selon leur voisinage."""
-        for tuile in self.carte.values():
+        for tuile in self.carte_tuiles.values():
             decalages_voisins: set[tuple[int, int]] = set()
             decalages_directions: list[tuple[int, int]] = [
                 (-1, 0),  # Gauche
@@ -291,9 +329,9 @@ class Carte:
                 (0, 1)    # Bas
             ]
             for decalage in decalages_directions:
-                position: tuple[int, int] = ((tuile.rect.x // TAILLE_TUILE) + decalage[0], (tuile.rect.y // TAILLE_TUILE) + decalage[1])
-                if self.tuile_presente(position):
-                    voisin: Tuile = self.carte[pos_en_str(position)]
+                pos_pixels = (tuile.rect.x + decalage[0] * 16, tuile.rect.y + decalage[1] * 16)
+                if self.tuile_presente(pos_pixels):
+                    voisin: Tuile = self.carte_tuiles[pos_en_str(pos_pixels)]
                     if tuile.type == voisin.type:
                         decalages_voisins.add(decalage)
 
@@ -302,15 +340,6 @@ class Carte:
                 tuile.index = CARTE_REDESSIN[configuration_voisins]
 
             tuile.image = self.images_tuiles[tuile.type][tuile.index]
-
-    def afficher(self, surface: pygame.Surface, decalage_camera: pygame.Vector2) -> None:
-        """Affiche toutes les tuiles de la carte sur la surface donnée.
-
-        Args:
-            surface (pygame.Surface): Surface Pygame où afficher les tuiles
-            decalage_camera (pygame.Vector2): Décalage de la caméra (x, y)
-        """
-        self.tuiles.draw(surface)
 
     def enregistrer_carte(self) -> tuple[bool, str]:
         """Enregistre la carte actuelle dans un fichier JSON.
@@ -334,17 +363,17 @@ class Carte:
                 self.nom_fichier = f"{numero_fichier}.json"
 
             # Préparer les données à sauvegarder
-            donnees_carte: dict[str, int | str | dict[str, dict[str, Any]]] = {
-                "taille_tuile": self.taille_tuile,
-                "nom_fichier": self.nom_fichier,
-                "carte": {position: tuile.en_dict() for position, tuile in self.carte.items()},
+            donnees_carte: dict[str, str | dict[str, dict[str, Any]]] = {
+                # "nom_fichier": self.nom_fichier,
+                "tuiles": {position: tuile.en_dict() for position, tuile in self.carte_tuiles.items()},
+                "deco": {position: deco.en_dict() for position, deco in self.carte_deco.items()},
             }
 
             # Sauvegarder dans le fichier
             with open(chemin_fichier, 'w', encoding='utf-8') as fichier:
                 json.dump(donnees_carte, fichier)
 
-            return True, f"Carte '{self.nom_fichier}' sauvegardée ({len(self.carte)} tuiles)"
+            return True, f"Carte '{self.nom_fichier}' sauvegardée ({len(self.carte_tuiles)} tuiles)"
 
         except Exception as erreur:
             return False, f"Erreur lors de la sauvegarde : {str(erreur)}"
@@ -357,6 +386,9 @@ class Carte:
             tuple[bool, str]: (succès, message)
         """
         try:
+            # Créer le répertoire s'il n'existe pas
+            os.makedirs("rsc/cartes", exist_ok=True)
+
             # Ouvrir la boîte de dialogue de sélection de fichier
             chemin_fichier: str = filedialog.askopenfilename(
                 title="Ouvrir une carte",
@@ -372,22 +404,27 @@ class Carte:
                 donnees: dict[str, Any] = json.load(f)
 
             # Vider la carte actuelle
-            self.carte.clear()
+            self.carte_tuiles.clear()
 
             # Charger les données du fichier
-            self.taille_tuile = donnees.get("taille_tuile", 16)
-            self.nom_fichier = donnees.get("nom_fichier")
+            self.nom_fichier = os.path.basename(chemin_fichier)
 
             # Reconstruire les tuiles à partir de ces données
-            for pos_str, infos_tuile in donnees["carte"].items():
+            for pos_str, infos_tuile in donnees["tuiles"].items():
                 tuile: Tuile = Tuile.de_dict(infos_tuile, self.images_tuiles[infos_tuile["type"]][infos_tuile["index"]])
-                self.carte[pos_str] = tuile
+                self.carte_tuiles[pos_str] = tuile
+
+            # Reconstruire les décorations à partir de ces données
+            for pos_str, infos_deco in donnees.get("deco", {}).items():
+                deco = Decoration(infos_deco["type"], infos_deco["index"], infos_deco["pos"], self.images_deco[infos_deco["type"]][infos_deco["index"]])
+                self.carte_deco[pos_str] = deco
+                self.deco.add(deco)
 
             # Si nom_fichier n'est pas défini dans le fichier, utiliser le basename
             if self.nom_fichier is None:
                 self.nom_fichier = os.path.basename(chemin_fichier)
 
-            return True, f"Carte '{self.nom_fichier}' chargée ({len(self.carte)} tuiles)"
+            return True, f"Carte '{self.nom_fichier}' chargée ({len(self.carte_tuiles)} tuiles)"
 
         except Exception as e:
             return False, f"Erreur lors du chargement : {str(e)}"
@@ -401,7 +438,9 @@ class Carte:
         """
         try:
             # Vider la carte actuelle
-            self.carte.clear()
+            self.carte_tuiles.clear()
+            self.carte_deco.clear()
+            self.deco.empty()
 
             # Réinitialiser le nom de fichier
             self.nom_fichier = None

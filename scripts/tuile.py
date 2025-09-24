@@ -5,10 +5,8 @@ from typing import Any, Sequence
 import pygame
 from scripts.type import TypeElement, TypeTuile, TypeDecoration
 
-TAILLE_TUILE = 16
 
-
-def pos_en_str(pos: Sequence[int]) -> str:
+def pos_en_str(pos: Sequence[int | float]) -> str:
     """Convertit une position (x, y) en chaîne de caractères."""
     return f"{int(pos[0])};{int(pos[1])}"
 
@@ -32,9 +30,8 @@ class ElementSprite(pygame.sprite.Sprite):
         self.type: TypeElement = type
         self.index: int = index
 
-        self.rect: pygame.Rect = image.get_rect(topleft=(pos[0] * TAILLE_TUILE, pos[1] * TAILLE_TUILE))
+        self.rect: pygame.Rect = image.get_rect(topleft=pos)
         self.image: pygame.Surface = image
-
 
     def afficher(self, surface: pygame.Surface, decalage: pygame.Vector2) -> None:
         """Affiche l'élément sur la surface donnée avec un décalage.
@@ -57,7 +54,7 @@ class ElementSprite(pygame.sprite.Sprite):
         return {
             "type": self.type,
             "index": self.index,
-            "pos": (self.rect.x / TAILLE_TUILE, self.rect.y / TAILLE_TUILE)
+            "pos": (self.rect.x, self.rect.y)
         }
 
     @classmethod
@@ -71,13 +68,12 @@ class ElementSprite(pygame.sprite.Sprite):
         Returns:
             Decoration: Nouvelle instance de Decoration
         """
-        instance = cls(infos["type"], infos["index"], (0.0, 0.0), image)
-        instance.rect.topleft = (infos["pos"][0] * TAILLE_TUILE, infos["pos"][1] * TAILLE_TUILE)
+        instance = cls(infos["type"], infos["index"], infos["pos"], image)
         return instance
 
     def __repr__(self) -> str:
         """Représentation string de l'élément pour le débogage."""
-        return f"ElementSprite(type={self.type}, index={self.index}, pos=({self.rect.x / TAILLE_TUILE}, {self.rect.y / TAILLE_TUILE}))"
+        return f"ElementSprite(type={self.type}, index={self.index}, pos={self.rect.topleft})"
 
 
 
@@ -108,12 +104,12 @@ class Tuile(ElementSprite):
     en utilisant des positions entières et un type spécifique de tuile.
     """
 
-    def __init__(self, type: TypeTuile, pos: tuple[int, int], index: int, image: pygame.Surface) -> None:
+    def __init__(self, type: TypeTuile, index: int, pos: tuple[float, float], image: pygame.Surface) -> None:
         """Initialise une nouvelle tuile.
 
         Args:
             type (TypeTuile): Type de la tuile (herbe ou pierre)
-            pos (tuple[int, int]): Position (x, y) entière dans la grille
+            pos (tuple[float, float]): Position (x, y) absolue en pixels
             index (int): Index de l'image dans la liste des images
             image (pygame.Surface): Surface Pygame de l'image de la tuile
         """
@@ -132,10 +128,9 @@ class Tuile(ElementSprite):
         Returns:
             Tuile: Nouvelle instance de Tuile
         """
-        instance = cls(infos["type"], (0, 0), infos["index"], image)
-        instance.rect.topleft = (infos["pos"][0] * TAILLE_TUILE, infos["pos"][1] * TAILLE_TUILE)
+        instance = cls(infos["type"], infos["index"], infos["pos"], image)
         return instance
 
     def __repr__(self) -> str:
         """Représentation string de la tuile pour le débogage."""
-        return f"Tuile(type={self.type}, pos=({self.rect.x / TAILLE_TUILE}, {self.rect.y / TAILLE_TUILE}), index={self.index})"
+        return f"Tuile(type={self.type}, pos={self.rect.topleft}, index={self.index})"

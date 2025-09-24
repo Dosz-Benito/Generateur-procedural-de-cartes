@@ -9,7 +9,7 @@ from scripts.rendu.camera import Camera
 from scripts.type import TypeTuile
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
-from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOMBRE_TUILES, TAILLE_AFFICHAGE, TAILLE_ECRAN, TYPES_TUILES, VITESSE_CAMERA
+from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOMBRE_TUILES, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
 # Tester avec stubtest.exe
 
 
@@ -40,10 +40,7 @@ class Editeur:
         self.horloge_jeu = pygame.time.Clock()
         self.decalage_camera: pygame.Vector2 = pygame.Vector2()
         self.camera = Camera(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
-        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]})
-
-        # Ajouter les tuiles à la caméra pour le rendu
-        self.camera.add(self.carte.tuiles)
+        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]})
 
         # Pour les messages de débogage
         self.message_debug: Optional[str] = None
@@ -58,36 +55,48 @@ class Editeur:
         self.probabilite_monter: float = 0.0
         self.probabilite_gauche: float = 0.0
 
-        self.generation_procedurale_iles()
+        self.generer_carte(self.generation_procedurale_iles)
 
-    def generation_procedurale(self) -> None:
+    def generer_carte(self, fonction: Callable[..., None]) -> None:
+        """Génère une nouvelle carte en utilisant la fonction de génération spécifiée.
+
+        Args:
+            fonction (Callable[..., None]): Fonction de génération à utiliser.
+        """
+        self.effacer_tuiles()
+        fonction()
+        self.carte.remplir()
+        self.carte.redessiner()
+        self.carte.generer_deco()
+        # Mettre à jour les tuiles et décorations dans la caméra
+        self.camera.empty()
+        self.camera.add(self.carte.tuiles)
+        self.camera.add(self.carte.deco)
+
+    def generation_procedurale_bloc(self) -> None:
         """Génère une carte procédurale avec un chemin continu.
 
         Crée un chemin aléatoire en plaçant des tuiles selon des probabilités
         de direction (gauche/droite, haut/bas) définies aléatoirement.
         """
-        position_x = nouvelle_position_x = 0
-        position_y = nouvelle_position_y = 0
+        position_x = nouvelle_position_x = 0.0
+        position_y = nouvelle_position_y = 0.0
         self.probabilite_monter, self.probabilite_gauche = random.choice([
             (0.8, 0.8), (0.8, 0.2), (0.2, 0.8), (0.2, 0.2)
         ])
         for _ in range(self.nombre_tuiles):
             while self.carte.tuile_presente((nouvelle_position_x, nouvelle_position_y)):
                 if random.random() < self.probabilite_gauche:
-                    nouvelle_position_x += DECALAGE_GAUCHE[0]
+                    nouvelle_position_x += DECALAGE_GAUCHE[0] * 16
                 else:
-                    nouvelle_position_x += DECALAGE_DROITE[0]
+                    nouvelle_position_x += DECALAGE_DROITE[0] * 16
                 if random.random() < self.probabilite_monter:
-                    nouvelle_position_y += DECALAGE_HAUT[1]
+                    nouvelle_position_y += DECALAGE_HAUT[1] * 16
                 else:
-                    nouvelle_position_y += DECALAGE_BAS[1]
-            position_x: int = nouvelle_position_x
-            position_y: int = nouvelle_position_y
-            self.carte.ajouter_tuile(position_x, position_y, "herbe")
-        self.carte.redessiner()
-        # Mettre à jour les tuiles dans la caméra
-        self.camera.empty()
-        self.camera.add(self.carte.tuiles)
+                    nouvelle_position_y += DECALAGE_BAS[1] * 16
+            position_x: float = nouvelle_position_x
+            position_y: float = nouvelle_position_y
+            self.carte.ajouter_tuile((position_x, position_y), "herbe")
 
     def generation_procedurale_iles(self) -> None:
         """Génère des îles variées séparées par des espaces vides.
@@ -96,8 +105,8 @@ class Editeur:
         de tailles et types variés, séparées par 1 à 4 tuiles vides.
         Les îles sont moins nombreuses mais plus grandes et praticables.
         """
-        position_x = 0
-        limite_horizontale: int = self.nombre_tuiles
+        position_x = 0.0
+        limite_horizontale: float = self.nombre_tuiles * 16
 
         formes: list[str] = [
             "triangle_inversé",
@@ -112,24 +121,24 @@ class Editeur:
             forme: str = random.choice(formes)
             type_tuile: TypeTuile = random.choice(("herbe", "pierre"))
 
-            # Définition des tailles selon la forme
+            # Définition des tailles selon la forme en pixels
             match forme:
                 case "escalier":
-                    largeur: int = random.randint(2, 4)
-                    hauteur: int = random.randint(2, 3)
+                    largeur: float = random.randint(32, 64)
+                    hauteur: float = random.randint(32, 48)
                 case "rectangle":
                     # Rectangles plus larges et plus hauts
                     largeur = random.choice([
-                        random.randint(5, 10),
-                        random.randint(10, 20)
+                        random.randint(80, 160),
+                        random.randint(160, 320)
                     ])
-                    hauteur = random.choice([random.randint(3, 7)])
+                    hauteur = random.choice([random.randint(48, 112)])
                 case _:
-                    largeur = random.randint(4, 8)
-                    hauteur = random.randint(2, 4)
+                    largeur = random.randint(64, 128)
+                    hauteur = random.randint(32, 64)
 
             # Détermine la hauteur de base en évitant les superpositions
-            hauteur_base: int = self.carte._hauteur_libre(position_x, largeur)
+            hauteur_base: float = self.carte._hauteur_libre(position_x, largeur)
 
             # Crée la forme
             match forme:
@@ -147,15 +156,8 @@ class Editeur:
                     self.carte._creer_rectangle(position_x, hauteur_base, largeur, hauteur, type_tuile)
 
             # Décalage horizontal pour la prochaine île
-            espace_vide: int = random.randint(1, 4)
+            espace_vide: float = random.randint(1, 4) * 16
             position_x += largeur + espace_vide
-
-        self.carte.redessiner()
-        # Mettre à jour les tuiles dans la caméra
-        self.camera.empty()
-        self.camera.add(self.carte.tuiles)
-
-    fonc_generation_procedurale: Callable[..., None] = generation_procedurale_iles
 
     def lancer(self) -> NoReturn:
         """Boucle principale du jeu gérant les événements et l'affichage."""
@@ -178,7 +180,7 @@ class Editeur:
             debogage.afficher_debug(self.fenetre, self.carte.tuiles, y=40)
             # Affichage des messages de débogage pour les opérations de fichier
             if self.message_debug and self.couleur_debug:
-                debogage.afficher_debug(self.fenetre, self.message_debug, y=40, couleur=self.couleur_debug)
+                debogage.afficher_debug(self.fenetre, self.message_debug, y=60, couleur=self.couleur_debug)
             pygame.display.update()
 
             self.horloge_jeu.tick(FPS)
@@ -190,25 +192,18 @@ class Editeur:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                self._gerer_touche_appui_touche(event.key)
+                self._gerer_appui_touche(event.key)
             if event.type == pygame.KEYUP:
                 self._gerer_relachement_touche(event.key)
 
-    def _gerer_touche_appui_touche(self, key: int) -> None:
+    def _gerer_appui_touche(self, key: int) -> None:
         """Gère les événements de touche pressée."""
         if key == GENERER_CARTE_ILES:
             self.camera.decalage = pygame.Vector2()
-            self.effacer_tuiles()
-            self.generation_procedurale_iles()
+            self.generer_carte(self.generation_procedurale_iles)
         elif key == GENERER_CARTE:
             self.camera.decalage = pygame.Vector2()
-            self.effacer_tuiles()
-            self.generation_procedurale()
-            self.carte.remplir()
-            self.carte.redessiner()
-            # Mettre à jour les tuiles dans la caméra
-            self.camera.empty()
-            self.camera.add(self.carte.tuiles)
+            self.generer_carte(self.generation_procedurale_bloc)
         elif key == DECALER_GAUCHE:
             self.mouvement_horizontal[0] = True
         elif key == DECALER_DROITE:
@@ -220,9 +215,10 @@ class Editeur:
         elif key == pygame.K_o:
             succes, message = self.carte.charger_carte()
             if succes:
-                # Mettre à jour les tuiles dans la caméra
+                # Mettre à jour les tuiles et décorations dans la caméra
                 self.camera.empty()
                 self.camera.add(self.carte.tuiles)
+                self.camera.add(self.carte.deco)
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
         elif key == pygame.K_s:
@@ -232,9 +228,10 @@ class Editeur:
         elif key == pygame.K_n:
             succes, message = self.carte.nouvelle_carte()
             if succes:
-                # Mettre à jour les tuiles dans la caméra
+                # Mettre à jour les tuiles et décorations dans la caméra
                 self.camera.empty()
                 self.camera.add(self.carte.tuiles)
+                self.camera.add(self.carte.deco)
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
 
@@ -257,7 +254,7 @@ class Editeur:
 
     def effacer_tuiles(self) -> None:
         """Efface toutes les tuiles de la carte actuelle."""
-        self.carte = Carte(self.carte.images_tuiles, self.carte.taille_tuile)
+        self.carte = Carte(self.carte.images_tuiles, self.carte.images_deco)
 
 
 Editeur().lancer()
