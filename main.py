@@ -5,7 +5,7 @@ import pygame
 import random
 import sys
 from scripts.carte import Carte
-from scripts.rendu.camera import Camera
+from scripts.rendu.camera import Rendu
 from scripts.type import TypeTuile
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
@@ -36,7 +36,7 @@ class GenerateurProcedural:
         }
         self.horloge = pygame.time.Clock()
         self.decalage_camera: pygame.Vector2 = pygame.Vector2()
-        self.camera = Camera(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
+        self.camera = Rendu(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
         self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]})
 
         # Pour les messages de débogage

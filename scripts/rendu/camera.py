@@ -1,8 +1,8 @@
-from typing import Any, Iterable, List
+from typing import Any, Iterable
 import pygame
 from pygame.sprite import AbstractGroup
 
-class Camera(pygame.sprite.Group):
+class Rendu(pygame.sprite.Group):
     def __init__(self, largeur_ecran: int, hauteur_ecran: int, *sprites: Any | AbstractGroup | Iterable) -> None:
         super().__init__(*sprites)
         self.decalage = pygame.Vector2()
