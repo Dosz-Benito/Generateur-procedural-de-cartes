@@ -22,11 +22,8 @@ class Editeur:
 
     def __init__(self) -> None:
         """Initialise l'éditeur Pygame et génère la première carte."""
-        try:
-            pygame.init()
-            pygame.display.set_caption("Éditeur de niveau")
-        except pygame.error as err:
-            raise RuntimeError("Erreur lors de l'initialisation de Pygame") from err
+        pygame.init()
+        pygame.display.set_caption("Éditeur de niveau")
 
         # Pour l'affichage
         self.surface_affichage = pygame.Surface(TAILLE_AFFICHAGE)
