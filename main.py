@@ -34,7 +34,7 @@ class Editeur:
             "plante": charger_images("rsc/images/deco/plantes"),
             "arbre": charger_images("rsc/images/deco/arbres"),
         }
-        self.horloge_jeu = pygame.time.Clock()
+        self.horloge = pygame.time.Clock()
         self.decalage_camera: pygame.Vector2 = pygame.Vector2()
         self.camera = Camera(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
         self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]})
@@ -180,7 +180,7 @@ class Editeur:
                 debogage.afficher_debug(self.fenetre, self.message_debug, y=60, couleur=self.couleur_debug)
             pygame.display.update()
 
-            self.horloge_jeu.tick(FPS)
+            self.horloge.tick(FPS)
 
     def _gerer_evenements(self) -> None:
         """Gère les événements Pygame dans la boucle principale."""
