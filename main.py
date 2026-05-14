@@ -13,7 +13,7 @@ from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, D
 # Tester avec stubtest.exe
 
 
-class Editeur:
+class GenerateurProcedural:
     """Éditeur principal pour la génération et l'affichage de cartes procédurales.
 
     Cette classe gère l'initialisation de Pygame, le chargement des ressources,
@@ -254,4 +254,4 @@ class Editeur:
         self.carte = Carte(self.carte.images_tuiles, self.carte.images_deco)
 
 
-Editeur().lancer()
+GenerateurProcedural().lancer()
