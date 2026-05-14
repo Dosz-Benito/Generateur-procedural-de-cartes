@@ -35,7 +35,6 @@ class GenerateurProcedural:
             "arbre": charger_images("rsc/images/deco/arbres"),
         }
         self.horloge = pygame.time.Clock()
-        self.decalage_camera: pygame.Vector2 = pygame.Vector2()
         self.camera = Rendu(TAILLE_ECRAN[0], TAILLE_ECRAN[1])
         self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]})
 
