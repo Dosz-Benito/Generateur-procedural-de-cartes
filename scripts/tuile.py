@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Any, Sequence
 import pygame
-from scripts.type import TypeElement, TypeTuile, TypeDecoration
+from scripts.parametres.type import TypeElement, TypeTuile, TypeDecoration
 
 
 def pos_en_str(pos: Sequence[int | float]) -> str:

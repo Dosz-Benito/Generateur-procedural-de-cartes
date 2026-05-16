@@ -1,13 +1,13 @@
-from typing import Any, Iterable, List
+from typing import Any, Iterable
 import pygame
 from pygame.sprite import AbstractGroup
 
-class Camera(pygame.sprite.Group):
+class Rendu(pygame.sprite.Group):
     def __init__(self, largeur_ecran: int, hauteur_ecran: int, *sprites: Any | AbstractGroup | Iterable) -> None:
         super().__init__(*sprites)
         self.decalage = pygame.Vector2()
-        self.largeur_ecran = largeur_ecran
-        self.hauteur_ecran = hauteur_ecran
+        self.largeur_ecran: int = largeur_ecran
+        self.hauteur_ecran: int = hauteur_ecran
 
     def centrer(self, cible: pygame.sprite.Sprite) -> None:
         """Centre la caméra sur le sprite cible (ex: joueur)."""
@@ -23,7 +23,7 @@ class Camera(pygame.sprite.Group):
         """Dessine uniquement les sprites visibles en tenant compte du décalage de la caméra."""
         for sprite in self.sprites():
             # Calculer le rect décalé
-            rect_decale = sprite.rect.move(-self.decalage.x, -self.decalage.y)
+            rect_decale: pygame.Rect = sprite.rect.move(-self.decalage.x, -self.decalage.y)
 
             # Vérifier si le sprite est visible dans la fenêtre
             if (rect_decale.right >= 0 and rect_decale.left <= self.largeur_ecran and

@@ -1,7 +1,7 @@
 """Paramètres et constantes globales du projet de génération procédurale de cartes."""
 
 import pygame
-from scripts.type import TypeDecoration, TypeTuile
+from scripts.parametres.type import TypeDecoration, TypeTuile
 
 #* Jeu en général
 TAILLE_ECRAN: tuple[int, int] = (1690, 800)
@@ -18,7 +18,10 @@ DECALER_BAS: int = pygame.K_DOWN
 GENERER_CARTE_ILES: int = pygame.K_i
 GENERER_CARTE: int = pygame.K_p
 
-
+#* --------- Commandes de contrôle ---------
+OUVRIR_CARTE: int = pygame.K_o
+ENREGISTRER_CARTE: int = pygame.K_s
+NOUVELLE_CARTE: int = pygame.K_n
 #* --------- Génération procédurale ---------
 # Décalages directionnels
 DECALAGE_HAUT_GAUCHE: tuple[int, int] = (-1, -1)
