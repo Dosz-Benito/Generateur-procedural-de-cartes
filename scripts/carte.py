@@ -1,14 +1,14 @@
 """Module définissant la classe Carte pour gérer la carte du jeu."""
 
 import random
-from typing import Any, Sequence, Optional
+from typing import Any, Optional
 import pygame
 import json
 import os
 from tkinter import filedialog
 from scripts.tuile import Decoration, Tuile, pos_en_str
 from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN
-from scripts.type import TypeDecoration, TypeTuile
+from scripts.parametres.type import TypeDecoration, TypeTuile
 
 # Constantes pour la génération
 PROFONDEUR_MAX = 11
@@ -67,7 +67,7 @@ class Carte:
         Args:
             pos_pixels (tuple[float, float]): Position en pixels
         """
-        cle = pos_en_str(pos_pixels)
+        cle: str = pos_en_str(pos_pixels)
         self.tuiles.remove(self.carte_tuiles[cle])
         del self.carte_tuiles[cle]
 

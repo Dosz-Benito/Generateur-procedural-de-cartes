@@ -5,7 +5,7 @@ import pygame
 import sys
 from scripts.carte import Carte
 from scripts.generateur import GenerateurProcedural
-from scripts.rendu.camera import Rendu
+from scripts.rendu import Rendu
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
 from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
