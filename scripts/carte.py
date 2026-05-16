@@ -449,3 +449,7 @@ class Carte:
 
         except Exception as e:
             return False, f"Erreur lors de la création d'une nouvelle carte : {str(e)}"
+
+    def effacer_tuiles(self) -> None:
+        """Efface toutes les tuiles de la carte."""
+        self.__init__(self.images_tuiles, self.images_deco)
