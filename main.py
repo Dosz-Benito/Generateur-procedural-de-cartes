@@ -8,7 +8,7 @@ from scripts.generateur import GenerateurProcedural
 from scripts.rendu.camera import Rendu
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_images
-from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, FPS, GENERER_CARTE, GENERER_CARTE_ILES, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
+from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
 # Tester avec stubtest.exe
 
 
@@ -46,7 +46,7 @@ class Fenetre:
         self.mouvement_vertical: list[bool] = [False, False]
 
         # Pour la génération procédurale
-        self.generateur_procedural = GenerateurProcedural(self.carte)
+        self.generateur_procedural: GenerateurProcedural = GenerateurProcedural(self.carte)
 
         self.generer_carte("Ile")
 
@@ -119,7 +119,7 @@ class Fenetre:
             self.mouvement_vertical[0] = True
         elif key == DECALER_BAS:
             self.mouvement_vertical[1] = True
-        elif key == pygame.K_o:
+        elif key == OUVRIR_CARTE:
             succes, message = self.carte.charger_carte()
             if succes:
                 # Mettre à jour les tuiles et décorations dans la caméra
@@ -128,11 +128,11 @@ class Fenetre:
                 self.camera.add(self.carte.deco)
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
-        elif key == pygame.K_s:
+        elif key == ENREGISTRER_CARTE:
             succes, message = self.carte.enregistrer_carte()
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
-        elif key == pygame.K_n:
+        elif key == NOUVELLE_CARTE:
             succes, message = self.carte.nouvelle_carte()
             if succes:
                 # Mettre à jour les tuiles et décorations dans la caméra
