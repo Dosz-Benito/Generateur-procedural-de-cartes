@@ -31,13 +31,10 @@ class Carte:
 
         self.carte_tuiles: dict[str, Tuile] = {}
         self.images_tuiles: dict[TypeTuile, list[pygame.Surface]] = images_tuiles
-        self.tuiles: pygame.sprite.Group[Tuile] = pygame.sprite.Group() # pyright: ignore[reportInvalidTypeArguments]
 
         self.carte_deco: dict[str, Decoration] = {}
         self.images_deco: dict[TypeDecoration, list[pygame.Surface]] = images_deco
         self.tuiles_a_decorer: set[Tuile] = set()
-        self.deco: pygame.sprite.Group[Decoration] = pygame.sprite.Group() # pyright: ignore[reportInvalidTypeArguments]
-
 
     # region Gestion des tuiles
     def tuile_presente(self, pos_pixels: tuple[float, float]) -> bool:
@@ -61,7 +58,6 @@ class Carte:
         cle_position: str = pos_en_str(pos_pixels)
         tuile = Tuile(type_tuile, 0, pos_pixels, self.images_tuiles[type_tuile][0])
         self.carte_tuiles[cle_position] = tuile
-        self.tuiles.add(tuile)
 
     def enlever_tuile(self, pos_pixels: tuple[float, float]) -> None:
         """Supprime la tuile à la position spécifiée.
@@ -70,7 +66,6 @@ class Carte:
             pos_pixels (tuple[float, float]): Position en pixels
         """
         cle: str = pos_en_str(pos_pixels)
-        self.tuiles.remove(self.carte_tuiles[cle])
         del self.carte_tuiles[cle]
 
     def _tuiles_autour(self, tuile: Tuile, decalages: list[tuple[int, int]] = INDEXS_DECALAGES) -> list[Tuile]:
@@ -103,7 +98,6 @@ class Carte:
         index = index or random.choice(range(len(self.images_deco[type_tuile])))
         deco = Decoration(type_tuile, index, rect.topleft, self.images_deco[type_tuile][index])
         self.carte_deco[pos_en_str(rect.topleft)] = deco
-        self.deco.add(deco)
 
     def enlever_deco(self, x: int, y: int) -> None:
         """Supprime la décoration à la position spécifiée.
@@ -112,7 +106,6 @@ class Carte:
             x (int): Coordonnée X
             y (int): Coordonnée Y
         """
-        self.deco.remove(self.carte_deco[pos_en_str((x, y))])
         del self.carte_deco[pos_en_str((x, y))]
 
     def generer_deco(self) -> None:
@@ -423,7 +416,6 @@ class Carte:
             for pos_str, infos_deco in donnees.get("deco", {}).items():
                 deco = Decoration(infos_deco["type"], infos_deco["index"], infos_deco["pos"], self.images_deco[infos_deco["type"]][infos_deco["index"]])
                 self.carte_deco[pos_str] = deco
-                self.deco.add(deco)
 
             # Si nom_fichier n'est pas défini dans le fichier, utiliser le basename
             if self.nom_fichier is None:
@@ -445,7 +437,6 @@ class Carte:
             # Vider la carte actuelle
             self.carte_tuiles.clear()
             self.carte_deco.clear()
-            self.deco.empty()
 
             # Réinitialiser le nom de fichier
             self.nom_fichier = None

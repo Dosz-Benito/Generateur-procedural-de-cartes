@@ -63,8 +63,8 @@ class Fenetre:
             self.carte.generer_deco()
             # Mettre à jour les tuiles et décorations dans la caméra
             self.camera.empty()
-            self.camera.add(self.carte.tuiles)
-            self.camera.add(self.carte.deco)
+            self.camera.add(self.carte.carte_tuiles.values())
+            self.camera.add(self.carte.carte_deco.values())
 
     def lancer(self) -> NoReturn:
         """Boucle principale du jeu gérant les événements et l'affichage."""
@@ -84,7 +84,7 @@ class Fenetre:
             debogage.afficher_debug(self.fenetre, f"Gauche : {self.generateur_procedural.probabilite_gauche * 100:.2f}%", x=150)
             debogage.afficher_debug(self.fenetre, f"Bas : {(1-self.generateur_procedural.probabilite_monter) * 100:.2f}%", y=20)
             debogage.afficher_debug(self.fenetre, f"Droite : {(1-self.generateur_procedural.probabilite_gauche) * 100:.2f}%", x=150, y=20)
-            debogage.afficher_debug(self.fenetre, self.carte.tuiles, y=40)
+            # debogage.afficher_debug(self.fenetre, self.carte.carte_tuiles.values(), y=40)
             # Affichage des messages de débogage pour les opérations de fichier
             if self.message_debug and self.couleur_debug:
                 debogage.afficher_debug(self.fenetre, self.message_debug, y=60, couleur=self.couleur_debug)
@@ -124,8 +124,8 @@ class Fenetre:
             if succes:
                 # Mettre à jour les tuiles et décorations dans la caméra
                 self.camera.empty()
-                self.camera.add(self.carte.tuiles)
-                self.camera.add(self.carte.deco)
+                self.camera.add(self.carte.carte_tuiles.values())
+                self.camera.add(self.carte.carte_deco.values())
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
         elif key == ENREGISTRER_CARTE:
@@ -137,8 +137,8 @@ class Fenetre:
             if succes:
                 # Mettre à jour les tuiles et décorations dans la caméra
                 self.camera.empty()
-                self.camera.add(self.carte.tuiles)
-                self.camera.add(self.carte.deco)
+                self.camera.add(self.carte.carte_tuiles.values())
+                self.camera.add(self.carte.carte_deco.values())
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
 
