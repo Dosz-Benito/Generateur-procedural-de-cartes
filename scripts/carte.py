@@ -133,13 +133,12 @@ class Carte:
 
     def generer_deco(self) -> None:
         """Génère des décorations aléatoires sur les tuiles existantes."""
-        for tuile in self.carte_tuiles.values():
-            if random.random() < 0.1:
+        for tuile in self.tuiles_marchables:
+            if random.random() < 0.5:
                 type_deco: TypeDecoration = random.choice(list(self.images_deco.keys()))
                 index = random.choice(range(len(self.images_deco[type_deco])))
-                image = self.images_deco[type_deco][index]
-                rect = pygame.FRect()
-                rect.midbottom = tuile.rect.midtop
+                image = self.images_deco[type_deco][index].copy()
+                rect = image.get_frect(midbottom = tuile.rect.midtop)
                 self.ajouter_deco(rect, type_deco, index)
     # endregion
 
