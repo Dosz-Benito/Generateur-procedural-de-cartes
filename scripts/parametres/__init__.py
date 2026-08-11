@@ -44,6 +44,15 @@ INDEXS_DECALAGES_DIAGONAUX: list[tuple[int, int]] = [
 INDEXS_DECALAGES_DROITS: list[tuple[int, int]] = [
     DECALAGE_HAUT, DECALAGE_BAS, DECALAGE_GAUCHE, DECALAGE_DROITE
 ]
+INDEXS_DECALAGES_TUILES_MARCHABLES = [
+    (DECALAGE_BAS, DECALAGE_DROITE),                 # En haut à gauche
+    (DECALAGE_BAS, DECALAGE_GAUCHE),                 # En haut à droite
+    (DECALAGE_GAUCHE, DECALAGE_DROITE), # Au milieu
+    (DECALAGE_GAUCHE, DECALAGE_DROITE, DECALAGE_BAS) # Au milieu
+]
+INDEXS_DECALAGES_TUILES_EN_BAS: list[tuple[int, int]] = [
+    DECALAGE_HAUT
+]
 
 # Constantes pour le redessinage
 TYPES_TUILES: list[TypeTuile] = ['herbe', 'pierre']

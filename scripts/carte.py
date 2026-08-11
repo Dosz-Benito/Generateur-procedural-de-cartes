@@ -7,7 +7,7 @@ import json
 import os
 from tkinter import filedialog
 from scripts.tuile import Decoration, Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, TYPES_REDESSIN
+from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, INDEXS_DECALAGES_TUILES_MARCHABLES, TYPES_REDESSIN
 from scripts.parametres.type import TypeDecoration, TypeTuile
 
 # Constantes pour la génération
@@ -31,23 +31,13 @@ class Carte:
 
         self.carte_tuiles: dict[str, Tuile] = {}
         self.images_tuiles: dict[TypeTuile, list[pygame.Surface]] = images_tuiles
+        self.tuiles_marchables: pygame.sprite.Group[Tuile] = pygame.sprite.Group()
 
         self.carte_deco: dict[str, Decoration] = {}
         self.images_deco: dict[TypeDecoration, list[pygame.Surface]] = images_deco
         self.tuiles_a_decorer: set[Tuile] = set()
 
-    # region Gestion des tuiles
-    def tuile_presente(self, pos_pixels: tuple[float, float]) -> bool:
-        """Vérifie si une tuile existe à la position donnée.
-
-        Args:
-            pos_pixels (tuple[float, float]): Coordonnées (x, y) en pixels à vérifier
-
-        Returns:
-            bool: True si une tuile existe à cette position
-        """
-        return pos_en_str(pos_pixels) in self.carte_tuiles
-
+    # region Opérations sur les tuiles
     def ajouter_tuile(self, pos_pixels: tuple[float, float], type_tuile: TypeTuile) -> None:
         """Ajoute une nouvelle tuile à la position spécifiée.
 
@@ -67,6 +57,19 @@ class Carte:
         """
         cle: str = pos_en_str(pos_pixels)
         del self.carte_tuiles[cle]
+    # endregion
+
+    # region Informations sur les tuiles
+    def tuile_presente(self, pos_pixels: tuple[float, float]) -> bool:
+        """Vérifie si une tuile existe à la position donnée.
+
+        Args:
+            pos_pixels (tuple[float, float]): Coordonnées (x, y) en pixels à vérifier
+
+        Returns:
+            bool: True si une tuile existe à cette position
+        """
+        return pos_en_str(pos_pixels) in self.carte_tuiles
 
     def _tuiles_autour(self, tuile: Tuile, decalages: list[tuple[int, int]] = INDEXS_DECALAGES) -> list[Tuile]:
         """Renvoie la liste des tuiles présentes autour de la tuile selon les décalages donnés.
@@ -84,6 +87,26 @@ class Carte:
             if self.tuile_presente(pos_pixels):
                 voisins.append(self.carte_tuiles[pos_en_str(pos_pixels)])
         return voisins
+
+    # Organisation des tuiles
+    def definir_groupes_tuiles(self) -> None:
+        self.tuiles_marchables = pygame.sprite.Group(self._tuiles_en_haut())
+        for tuile in self.tuiles_marchables:
+            image = tuile.image.copy()
+            image.fill("yellow")
+            tuile.image = image
+
+    def _tuiles_en_haut(self) -> list[Tuile]:
+        """Renvoie la liste des tuiles sur lesquelles le joueur va pouvoir marcher"""
+        marchables: list[Tuile] = []
+        for tuile in self.carte_tuiles.values():
+            voisins = self._tuiles_autour(tuile, INDEXS_DECALAGES)
+            if len(voisins) > 5:
+                continue
+            if self._tuiles_autour(tuile, INDEXS_DECALAGES_TUILES_EN_BAS):
+                continue
+            marchables.append(tuile)
+        return marchables
     # endregion
 
     # region Gestion des décorations

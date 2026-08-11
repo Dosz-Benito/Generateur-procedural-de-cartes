@@ -60,6 +60,7 @@ class Fenetre:
             {"Ile": self.generateur_procedural.generation_procedurale_iles, "Bloc": self.generateur_procedural.generation_procedurale_bloc}[type_carte]()
             self.carte.remplir()
             self.carte.redessiner()
+            self.carte.definir_groupes_tuiles()
             self.carte.generer_deco()
             # Mettre à jour les tuiles et décorations dans la caméra
             self.camera.empty()
