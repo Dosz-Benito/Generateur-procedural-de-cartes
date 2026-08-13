@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Any, Sequence
 import pygame
-from scripts.parametres.type import TypeElement, TypeTuile, TypeDecoration
+from scripts.parametres.type import TypeElement, TypeEntite, TypeTuile, TypeDecoration
 
 
 def pos_en_str(pos: Sequence[int | float]) -> str:
@@ -75,8 +75,6 @@ class ElementSprite(pygame.sprite.Sprite):
         """Représentation string de l'élément pour le débogage."""
         return f"ElementSprite(type={self.type}, index={self.index}, pos={self.rect.topleft})"
 
-
-
 class Decoration(ElementSprite):
     """Représente un élément décoratif dans la carte du jeu.
 
@@ -134,3 +132,7 @@ class Tuile(ElementSprite):
     def __repr__(self) -> str:
         """Représentation string de la tuile pour le débogage."""
         return f"Tuile(type={self.type}, pos={self.rect.topleft}, index={self.index})"
+
+class Entite(ElementSprite):
+    def __init__(self, type: TypeEntite, pos: tuple[float, float], image: pygame.Surface) -> None:
+        super().__init__(type, 0, pos, image)

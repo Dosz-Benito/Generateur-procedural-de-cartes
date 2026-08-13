@@ -7,4 +7,6 @@ from typing import Literal, TypeAlias
 
 TypeTuile: TypeAlias = Literal["herbe", "pierre"]
 TypeDecoration: TypeAlias = Literal["arbre", "plante"]
-TypeElement: TypeAlias = TypeTuile | TypeDecoration
+TypeEntite: TypeAlias = Literal["joueur", "ennemi"]
+
+TypeElement: TypeAlias = TypeTuile | TypeDecoration | TypeEntite

@@ -1,14 +1,15 @@
 """Module définissant la classe Carte pour gérer la carte du jeu."""
 
+from multiprocessing import Value
 import random
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 import pygame
 import json
 import os
 from tkinter import filedialog
-from scripts.tuile import Decoration, Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, INDEXS_DECALAGES_TUILES_MARCHABLES, TYPES_REDESSIN
-from scripts.parametres.type import TypeDecoration, TypeTuile
+from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
+from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, INDEXS_DECALAGES_TUILES_MARCHABLES, TYPES_REDESSIN
+from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
 
 # Constantes pour la génération
 PROFONDEUR_MAX = 11
@@ -24,7 +25,7 @@ class Carte:
     supprimer et manipuler les tuiles selon les règles de génération.
     """
 
-    def __init__(self, images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]]) -> None:
+    def __init__(self, images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]], images_entites: dict[TypeEntite, pygame.Surface]) -> None:
         """Initialise une nouvelle carte.
         """
         self.nom_fichier: Optional[str] = None
@@ -36,6 +37,9 @@ class Carte:
         self.carte_deco: dict[str, Decoration] = {}
         self.images_deco: dict[TypeDecoration, list[pygame.Surface]] = images_deco
         self.tuiles_a_decorer: set[Tuile] = set()
+
+        self.carte_entites: dict[TypeEntite, Entite] = {}
+        self.images_entites: dict[TypeEntite, pygame.Surface] = images_entites
 
     # region Opérations sur les tuiles
     def ajouter_tuile(self, pos_pixels: tuple[float, float], type_tuile: TypeTuile) -> None:
@@ -140,6 +144,30 @@ class Carte:
                 image = self.images_deco[type_deco][index].copy()
                 rect = image.get_frect(midbottom = tuile.rect.midtop)
                 self.ajouter_deco(rect, type_deco, index)
+    # endregion
+
+    # region Gestion des entités
+    def generer_entite(self, type_entite: TypeEntite) -> None:
+        match type_entite:
+            case "joueur":
+                self.ajouter_joueur()
+            case _:
+                raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
+
+    def ajouter_joueur(self) -> None:
+        tuile_choisie: Tuile = self.tuiles_marchables.sprites()[0]
+
+        resultat_tuile_en_haut: list[Tuile] = self._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
+        while len(resultat_tuile_en_haut) != 0:
+            tuile_choisie = resultat_tuile_en_haut[0]
+            resultat_tuile_en_haut = self._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
+
+        image_joueur = self.images_entites["joueur"]
+        rect_joueur = image_joueur.get_frect()
+        rect_joueur.bottomleft = tuile_choisie.rect.topleft
+        rect_joueur.bottom -= 16*5
+        joueur = Entite("joueur", rect_joueur.topleft, image_joueur)
+        self.carte_entites["joueur"] = joueur
     # endregion
 
     # region Remplissage de la carte
@@ -470,5 +498,5 @@ class Carte:
 
     def effacer_tuiles(self) -> None:
         """Efface toutes les tuiles de la carte."""
-        self.__init__(self.images_tuiles, self.images_deco)
+        self.__init__(self.images_tuiles, self.images_deco, self.images_entites)
     # endregion

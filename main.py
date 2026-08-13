@@ -7,7 +7,7 @@ from scripts.carte import Carte
 from scripts.generateur import GenerateurProcedural
 from scripts.rendu import Rendu
 from scripts.utilitaires import debogage
-from scripts.utilitaires.outils_images import charger_images
+from scripts.utilitaires.outils_images import charger_image, charger_images
 from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
 # Tester avec stubtest.exe
 
@@ -27,15 +27,19 @@ class Fenetre:
         # Pour l'affichage
         self.surface_affichage = pygame.Surface(TAILLE_AFFICHAGE)
         self.fenetre: pygame.Surface = pygame.display.set_mode(TAILLE_ECRAN, pygame.SRCALPHA)
-        self.ressources: dict[str, list[pygame.Surface]] = {
+        self.ressources: dict[str, list[pygame.Surface] | pygame.Surface] = {
+            # Décor
             'herbe': charger_images("rsc/images/tuiles/herbe"),
             'pierre': charger_images("rsc/images/tuiles/pierre"),
             "plante": charger_images("rsc/images/deco/plantes"),
             "arbre": charger_images("rsc/images/deco/arbres"),
+
+            # Entités
+            "joueur": charger_image("rsc/images/personnages/joueur/joueur.png")
         }
         self.horloge = pygame.time.Clock()
         self.camera = Rendu(*TAILLE_ECRAN)
-        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]})
+        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]}, {"joueur": self.ressources["joueur"]}) # pyright: ignore[reportArgumentType]
 
         # Pour les messages de débogage
         self.message_debug: Optional[str] = None
@@ -62,10 +66,13 @@ class Fenetre:
             self.carte.redessiner()
             self.carte.definir_groupes_tuiles()
             self.carte.generer_deco()
+            self.carte.generer_entite("joueur")
+            print(self.carte.carte_entites)
             # Mettre à jour les tuiles et décorations dans la caméra
             self.camera.empty()
             self.camera.add(self.carte.carte_tuiles.values())
             self.camera.add(self.carte.carte_deco.values())
+            self.camera.add(self.carte.carte_entites.values())
 
     def lancer(self) -> NoReturn:
         """Boucle principale du jeu gérant les événements et l'affichage."""
