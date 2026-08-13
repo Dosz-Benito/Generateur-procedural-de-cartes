@@ -35,11 +35,12 @@ class Fenetre:
             "arbre": charger_images("rsc/images/deco/arbres"),
 
             # Entités
-            "joueur": charger_image("rsc/images/personnages/joueur/joueur.png")
+            "joueur": charger_image("rsc/images/personnages/joueur/joueur.png"),
+            "ennemi": charger_image("rsc/images/personnages/ennemi/ennemi.png")
         }
         self.horloge = pygame.time.Clock()
         self.camera = Rendu(*TAILLE_ECRAN)
-        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]}, {"joueur": self.ressources["joueur"]}) # pyright: ignore[reportArgumentType]
+        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]}, {"joueur": self.ressources["joueur"], "ennemi": self.ressources["ennemi"]}) # pyright: ignore[reportArgumentType]
 
         # Pour les messages de débogage
         self.message_debug: Optional[str] = None
@@ -67,6 +68,7 @@ class Fenetre:
             self.carte.definir_groupes_tuiles()
             self.carte.generer_deco()
             self.carte.generer_entite("joueur")
+            self.carte.generer_entite("ennemi")
             print(self.carte.carte_entites)
             # Mettre à jour les tuiles et décorations dans la caméra
             self.camera.empty()

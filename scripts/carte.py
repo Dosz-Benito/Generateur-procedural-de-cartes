@@ -38,7 +38,7 @@ class Carte:
         self.images_deco: dict[TypeDecoration, list[pygame.Surface]] = images_deco
         self.tuiles_a_decorer: set[Tuile] = set()
 
-        self.carte_entites: dict[TypeEntite, Entite] = {}
+        self.carte_entites: dict[TypeEntite, Entite | list[Entite]] = {}
         self.images_entites: dict[TypeEntite, pygame.Surface] = images_entites
 
     # region Opérations sur les tuiles
@@ -151,8 +151,17 @@ class Carte:
         match type_entite:
             case "joueur":
                 self.ajouter_joueur()
+            case "ennemi":
+                self.ajouter_ennemis()
             case _:
                 raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
+
+    def ajouter_ennemis(self) -> None:
+        if "ennemi" not in self.carte_entites.keys():
+            self.carte_entites["ennemi"] = []
+        for tuile in self.tuiles_marchables:
+            if random.random() < 0.45:
+                self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile.rect.left, bottom=tuile.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
 
     def ajouter_joueur(self) -> None:
         tuile_choisie: Tuile = self.tuiles_marchables.sprites()[0]
