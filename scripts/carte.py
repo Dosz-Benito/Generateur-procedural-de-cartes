@@ -7,6 +7,7 @@ import pygame
 import json
 import os
 from tkinter import filedialog
+from scripts.generation.ennemi.bloc import Bloc
 from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
 from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, INDEXS_DECALAGES_TUILES_MARCHABLES, TYPES_REDESSIN
 from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
@@ -111,6 +112,31 @@ class Carte:
                 continue
             marchables.append(tuile)
         return marchables
+
+    def _decouper_tuiles_en_blocs(self) -> list[Bloc]:
+        """Découpe les tuiles marchables en blocs contigus à la même hauteur.
+
+        Returns:
+            list[Bloc]: Liste des blocs, chaque bloc regroupant des tuiles à la
+            même hauteur et horizontalement contiguës.
+        """
+        tuiles_par_hauteur: dict[float, list[Tuile]] = {}
+        for tuile in self.tuiles_marchables:
+            tuiles_par_hauteur.setdefault(tuile.rect.y, []).append(tuile)
+
+        blocs: list[Bloc] = []
+        for tuiles in tuiles_par_hauteur.values():
+            tuiles_triees: list[Tuile] = sorted(tuiles, key=lambda tuile: tuile.rect.x)
+            bloc_courant: list[Tuile] = [tuiles_triees[0]]
+            for tuile in tuiles_triees[1:]:
+                if tuile.rect.x - bloc_courant[-1].rect.x > 16:
+                    blocs.append(Bloc.depuis_tuiles(bloc_courant))
+                    bloc_courant = [tuile]
+                else:
+                    bloc_courant.append(tuile)
+            blocs.append(Bloc.depuis_tuiles(bloc_courant))
+        return blocs
+
     # endregion
 
     # region Gestion des décorations
@@ -157,11 +183,10 @@ class Carte:
                 raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
 
     def ajouter_ennemis(self) -> None:
-        if "ennemi" not in self.carte_entites.keys():
-            self.carte_entites["ennemi"] = []
-        for tuile in self.tuiles_marchables:
-            if random.random() < 0.45:
-                self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile.rect.left, bottom=tuile.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
+        self.carte_entites["ennemi"] = []
+        for bloc in self._decouper_tuiles_en_blocs():
+            tuile_choisie: Tuile = min(bloc.tuiles, key=lambda tuile: abs(tuile.rect.x - bloc.milieu))
+            self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile_choisie.rect.left, bottom=tuile_choisie.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
 
     def ajouter_joueur(self) -> None:
         tuile_choisie: Tuile = self.tuiles_marchables.sprites()[0]

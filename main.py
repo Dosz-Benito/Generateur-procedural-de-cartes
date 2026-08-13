@@ -69,7 +69,6 @@ class Fenetre:
         self.carte.generer_deco()
         self.carte.generer_entite("joueur")
         self.carte.generer_entite("ennemi")
-        print(self.carte.carte_entites)
         # Mettre à jour les tuiles et décorations dans la caméra
         self.camera.empty()
         self.camera.add(self.carte.carte_tuiles.values())
