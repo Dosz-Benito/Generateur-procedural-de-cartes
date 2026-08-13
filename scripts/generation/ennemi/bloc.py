@@ -26,6 +26,11 @@ class Bloc:
         """Position X du centre du bloc en pixels."""
         return (self.x_min + self.x_max) / 2
 
+    @property
+    def nb_tuiles(self) -> int:
+        """Le nombre de tuiles que contient ce bloc"""
+        return len(self.tuiles)
+
     @classmethod
     def depuis_tuiles(cls, tuiles: list[Tuile]) -> Bloc:
         """Construit un bloc à partir de tuiles contiguës à la même hauteur.

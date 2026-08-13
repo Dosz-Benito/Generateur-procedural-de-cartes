@@ -1,5 +1,6 @@
 """Module définissant la classe Carte pour gérer la carte du jeu."""
 
+import math
 from multiprocessing import Value
 import random
 from typing import Any, Literal, Optional
@@ -137,6 +138,15 @@ class Carte:
             blocs.append(Bloc.depuis_tuiles(bloc_courant))
         return blocs
 
+    def _extraire_blocs_tuiles_marchables(self, nb_tuiles_minimal: int) -> list[Bloc]:
+        blocs: list[Bloc] = self._decouper_tuiles_en_blocs()
+
+        for bloc in blocs.copy():
+            if bloc.nb_tuiles < nb_tuiles_minimal:
+                blocs.remove(bloc)
+
+        return blocs
+
     # endregion
 
     # region Gestion des décorations
@@ -184,7 +194,7 @@ class Carte:
 
     def ajouter_ennemis(self) -> None:
         self.carte_entites["ennemi"] = []
-        for bloc in self._decouper_tuiles_en_blocs():
+        for bloc in self._extraire_blocs_tuiles_marchables(3):
             tuile_choisie: Tuile = min(bloc.tuiles, key=lambda tuile: abs(tuile.rect.x - bloc.milieu))
             self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile_choisie.rect.left, bottom=tuile_choisie.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
 
