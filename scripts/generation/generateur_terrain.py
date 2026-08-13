@@ -1,13 +1,28 @@
 import random
+from typing import Literal
 from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, NOMBRE_TUILES, TypeTuile
 
 
-class GenerateurProcedural:
+class GenerateurTerrain:
     def __init__(self, carte) -> None:
         self.carte = carte
         self.nombre_tuiles: int = NOMBRE_TUILES
         self.probabilite_monter: float = 0.0
         self.probabilite_gauche: float = 0.0
+
+    def generer(self, type_carte: Literal["Ile", "Bloc"]) -> None:
+        """Génère le terrain de la carte selon le type de génération demandé.
+
+        Args:
+            type_carte (Literal["Ile", "Bloc"]): Type de génération à utiliser.
+        """
+        match type_carte:
+            case "Ile":
+                self.generation_procedurale_iles()
+            case "Bloc":
+                self.generation_procedurale_bloc()
+            case _:
+                raise ValueError(f"Le type de carte {type_carte} n'est pas pris en charge")
 
     def generation_procedurale_bloc(self) -> None:
             """Génère une carte procédurale avec un chemin continu.

@@ -4,7 +4,7 @@ from typing import Literal, NoReturn, Optional
 import pygame
 import sys
 from scripts.carte import Carte
-from scripts.generateur import GenerateurProcedural
+from scripts.generation.generateur_terrain import GenerateurTerrain
 from scripts.rendu import Rendu
 from scripts.utilitaires import debogage
 from scripts.utilitaires.outils_images import charger_image, charger_images
@@ -51,30 +51,30 @@ class Fenetre:
         self.mouvement_vertical: list[bool] = [False, False]
 
         # Pour la génération procédurale
-        self.generateur_procedural: GenerateurProcedural = GenerateurProcedural(self.carte)
+        self.generateur_terrain: GenerateurTerrain = GenerateurTerrain(self.carte)
 
         self.generer_carte("Ile")
 
-    def generer_carte(self, type_carte: Literal["Ile", "Bloc"]) -> None:
-            """Génère une nouvelle carte en utilisant la fonction de génération spécifiée.
+    def generer_carte(self, type_terrain: Literal["Ile", "Bloc"]) -> None:
+        """Génère une nouvelle carte complète, avec les tuiles, la décoration, le joueur et les ennemis.
 
-            Args:
-                fonction (Callable[..., None]): Fonction de génération à utiliser.
-            """
-            self.carte.effacer_tuiles()
-            {"Ile": self.generateur_procedural.generation_procedurale_iles, "Bloc": self.generateur_procedural.generation_procedurale_bloc}[type_carte]()
-            self.carte.remplir()
-            self.carte.redessiner()
-            self.carte.definir_groupes_tuiles()
-            self.carte.generer_deco()
-            self.carte.generer_entite("joueur")
-            self.carte.generer_entite("ennemi")
-            print(self.carte.carte_entites)
-            # Mettre à jour les tuiles et décorations dans la caméra
-            self.camera.empty()
-            self.camera.add(self.carte.carte_tuiles.values())
-            self.camera.add(self.carte.carte_deco.values())
-            self.camera.add(self.carte.carte_entites.values())
+        Args:
+            type_terrain (Literal[&quot;Ile&quot;, &quot;Bloc&quot;]): Le type de terrain à utiliser pour la génération.
+        """
+        self.carte.effacer_tuiles()
+        self.generateur_terrain.generer(type_terrain)
+        self.carte.remplir()
+        self.carte.redessiner()
+        self.carte.definir_groupes_tuiles()
+        self.carte.generer_deco()
+        self.carte.generer_entite("joueur")
+        self.carte.generer_entite("ennemi")
+        print(self.carte.carte_entites)
+        # Mettre à jour les tuiles et décorations dans la caméra
+        self.camera.empty()
+        self.camera.add(self.carte.carte_tuiles.values())
+        self.camera.add(self.carte.carte_deco.values())
+        self.camera.add(self.carte.carte_entites.values())
 
     def lancer(self) -> NoReturn:
         """Boucle principale du jeu gérant les événements et l'affichage."""
@@ -90,10 +90,10 @@ class Fenetre:
             # Affichage du nom de la carte en mode débogage
             nom_affiche: str = self.carte.nom_fichier if self.carte.nom_fichier else "Nouvelle carte"
             debogage.afficher_debug(self.fenetre, nom_affiche, couleur=pygame.Color("yellow"), alignement=pygame.FONT_CENTER)
-            debogage.afficher_debug(self.fenetre, f"Haut : {self.generateur_procedural.probabilite_monter * 100:.2f}%")
-            debogage.afficher_debug(self.fenetre, f"Gauche : {self.generateur_procedural.probabilite_gauche * 100:.2f}%", x=150)
-            debogage.afficher_debug(self.fenetre, f"Bas : {(1-self.generateur_procedural.probabilite_monter) * 100:.2f}%", y=20)
-            debogage.afficher_debug(self.fenetre, f"Droite : {(1-self.generateur_procedural.probabilite_gauche) * 100:.2f}%", x=150, y=20)
+            debogage.afficher_debug(self.fenetre, f"Haut : {self.generateur_terrain.probabilite_monter * 100:.2f}%")
+            debogage.afficher_debug(self.fenetre, f"Gauche : {self.generateur_terrain.probabilite_gauche * 100:.2f}%", x=150)
+            debogage.afficher_debug(self.fenetre, f"Bas : {(1-self.generateur_terrain.probabilite_monter) * 100:.2f}%", y=20)
+            debogage.afficher_debug(self.fenetre, f"Droite : {(1-self.generateur_terrain.probabilite_gauche) * 100:.2f}%", x=150, y=20)
             # debogage.afficher_debug(self.fenetre, self.carte.carte_tuiles.values(), y=40)
             # Affichage des messages de débogage pour les opérations de fichier
             if self.message_debug and self.couleur_debug:
