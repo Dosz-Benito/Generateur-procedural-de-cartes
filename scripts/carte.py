@@ -91,6 +91,7 @@ class Carte:
             if self.tuile_presente(pos_pixels):
                 voisins.append(self.carte_tuiles[pos_en_str(pos_pixels)])
         return voisins
+    # endregion
 
     # region Organisation des tuiles
     def definir_groupes_tuiles(self) -> None:
