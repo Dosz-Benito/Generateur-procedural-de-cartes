@@ -3,12 +3,12 @@
 from typing import Literal, NoReturn, Optional
 import pygame
 import sys
-from scripts.carte import Carte
-from scripts.generation.generateur_terrain import GenerateurTerrain
+from scripts.generation import generer_carte
+from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
 from scripts.rendu import Rendu
 from scripts.utilitaires import debogage
-from scripts.utilitaires.outils_images import charger_image, charger_images
 from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
+from scripts.utilitaires.outils_images import charger_image, charger_images
 # Tester avec stubtest.exe
 
 
@@ -27,6 +27,7 @@ class Fenetre:
         # Pour l'affichage
         self.surface_affichage = pygame.Surface(TAILLE_AFFICHAGE)
         self.fenetre: pygame.Surface = pygame.display.set_mode(TAILLE_ECRAN, pygame.SRCALPHA)
+
         self.ressources: dict[str, list[pygame.Surface] | pygame.Surface] = {
             # Décor
             'herbe': charger_images("rsc/images/tuiles/herbe"),
@@ -38,9 +39,18 @@ class Fenetre:
             "joueur": charger_image("rsc/images/personnages/joueur/joueur.png"),
             "ennemi": charger_image("rsc/images/personnages/ennemi/ennemi.png")
         }
+
         self.horloge = pygame.time.Clock()
+
+        images_tuiles: dict[TypeTuile, list[pygame.Surface]]= {"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]} # pyright: ignore[reportAssignmentType]
+        images_deco: dict[TypeDecoration, list[pygame.Surface]] = {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]} # pyright: ignore[reportAssignmentType]
+        images_entites: dict[TypeEntite, pygame.Surface]= {"joueur": self.ressources["joueur"], "ennemi": self.ressources["ennemi"]} # pyright: ignore[reportAssignmentType]
+        self.groupes_images: tuple[dict[TypeTuile | TypeDecoration | TypeEntite, list[pygame.Surface]] | pygame.Surface, ...] = (images_tuiles, images_deco, images_entites) # pyright: ignore[reportAttributeAccessIssue]
+
+        # Mettre à jour les tuiles et décorations dans la caméra
         self.camera = Rendu(*TAILLE_ECRAN)
-        self.carte = Carte({"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]}, {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]}, {"joueur": self.ressources["joueur"], "ennemi": self.ressources["ennemi"]}) # pyright: ignore[reportArgumentType]
+
+        self.nouvelle_generation("Ile")
 
         # Pour les messages de débogage
         self.message_debug: Optional[str] = None
@@ -50,30 +60,14 @@ class Fenetre:
         self.mouvement_horizontal: list[bool] = [False, False]
         self.mouvement_vertical: list[bool] = [False, False]
 
-        # Pour la génération procédurale
-        self.generateur_terrain: GenerateurTerrain = GenerateurTerrain(self.carte)
+    def nouvelle_generation(self, type_terrain: Literal["Ile", "Bloc"]) -> None:
+        self.carte = generer_carte(type_terrain, *self.groupes_images) # pyright: ignore[reportArgumentType]
 
-        self.generer_carte("Ile")
-
-    def generer_carte(self, type_terrain: Literal["Ile", "Bloc"]) -> None:
-        """Génère une nouvelle carte complète, avec les tuiles, la décoration, le joueur et les ennemis.
-
-        Args:
-            type_terrain (Literal[&quot;Ile&quot;, &quot;Bloc&quot;]): Le type de terrain à utiliser pour la génération.
-        """
-        self.carte.effacer_tuiles()
-        self.generateur_terrain.generer(type_terrain)
-        self.carte.remplir()
-        self.carte.redessiner()
-        self.carte.definir_groupes_tuiles()
-        self.carte.generer_deco()
-        self.carte.generer_entite("joueur")
-        self.carte.generer_entite("ennemi")
-        # Mettre à jour les tuiles et décorations dans la caméra
         self.camera.empty()
         self.camera.add(self.carte.carte_tuiles.values())
         self.camera.add(self.carte.carte_deco.values())
         self.camera.add(self.carte.carte_entites.values())
+
 
     def lancer(self) -> NoReturn:
         """Boucle principale du jeu gérant les événements et l'affichage."""
@@ -89,10 +83,6 @@ class Fenetre:
             # Affichage du nom de la carte en mode débogage
             nom_affiche: str = self.carte.nom_fichier if self.carte.nom_fichier else "Nouvelle carte"
             debogage.afficher_debug(self.fenetre, nom_affiche, couleur=pygame.Color("yellow"), alignement=pygame.FONT_CENTER)
-            debogage.afficher_debug(self.fenetre, f"Haut : {self.generateur_terrain.probabilite_monter * 100:.2f}%")
-            debogage.afficher_debug(self.fenetre, f"Gauche : {self.generateur_terrain.probabilite_gauche * 100:.2f}%", x=150)
-            debogage.afficher_debug(self.fenetre, f"Bas : {(1-self.generateur_terrain.probabilite_monter) * 100:.2f}%", y=20)
-            debogage.afficher_debug(self.fenetre, f"Droite : {(1-self.generateur_terrain.probabilite_gauche) * 100:.2f}%", x=150, y=20)
             # debogage.afficher_debug(self.fenetre, self.carte.carte_tuiles.values(), y=40)
             # Affichage des messages de débogage pour les opérations de fichier
             if self.message_debug and self.couleur_debug:
@@ -116,10 +106,10 @@ class Fenetre:
         """Gère les événements de touche pressée."""
         if key == GENERER_CARTE_ILES:
             self.camera.decalage = pygame.Vector2()
-            self.generer_carte("Ile")
+            self.nouvelle_generation("Ile")
         elif key == GENERER_CARTE:
             self.camera.decalage = pygame.Vector2()
-            self.generer_carte("Bloc")
+            self.nouvelle_generation("Bloc")
         elif key == DECALER_GAUCHE:
             self.mouvement_horizontal[0] = True
         elif key == DECALER_DROITE:

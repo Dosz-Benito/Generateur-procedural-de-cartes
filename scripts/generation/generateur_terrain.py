@@ -1,55 +1,72 @@
 import random
 from typing import Literal
-from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, NOMBRE_TUILES, TypeTuile
+from warnings import deprecated
+import pygame
+from scripts.carte import Carte
+from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, TypeTuile
+from scripts.parametres.type import TypeDecoration, TypeEntite
 
 
 class GenerateurTerrain:
-    def __init__(self, carte) -> None:
-        self.carte = carte
-        self.nombre_tuiles: int = NOMBRE_TUILES
+    def __init__(self, nombre_tuiles_max_horizontal: int, longueur_tuile: int = 16, largeur_tuile: int = 16, ) -> None:
+        self.nombre_tuiles: int = nombre_tuiles_max_horizontal
+        self.longueur_tuile: int = longueur_tuile
+        self.largeur_tuile: int = largeur_tuile
+
+        # ! A supprimer avec la fonction self.generation_procedurale_bloc
         self.probabilite_monter: float = 0.0
         self.probabilite_gauche: float = 0.0
 
-    def generer(self, type_carte: Literal["Ile", "Bloc"]) -> None:
+    def generer(self, type_carte: Literal["Ile", "Bloc"], images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]], images_entites: dict[TypeEntite, pygame.Surface]) -> Carte:
         """Génère le terrain de la carte selon le type de génération demandé.
 
         Args:
             type_carte (Literal["Ile", "Bloc"]): Type de génération à utiliser.
         """
+        carte = Carte(images_tuiles, images_deco, images_entites) # pyright: ignore[reportArgumentType]
         match type_carte:
             case "Ile":
-                self.generation_procedurale_iles()
+                self.generation_procedurale_iles(carte)
             case "Bloc":
                 self.generation_procedurale_bloc()
             case _:
                 raise ValueError(f"Le type de carte {type_carte} n'est pas pris en charge")
+        carte.remplir()
+        carte.redessiner()
+        carte.definir_groupes_tuiles()
+        carte.generer_deco()
+        carte.generer_entite("joueur")
+        carte.generer_entite("ennemi")
+        return carte
 
+    @deprecated("La fonction est à revoir")
     def generation_procedurale_bloc(self) -> None:
-            """Génère une carte procédurale avec un chemin continu.
+        """Génère une carte procédurale avec un chemin continu.
 
-            Crée un chemin aléatoire en plaçant des tuiles selon des probabilités
-            de direction (gauche/droite, haut/bas) définies aléatoirement.
-            """
-            position_x = nouvelle_position_x = 0.0
-            position_y = nouvelle_position_y = 0.0
-            self.probabilite_monter, self.probabilite_gauche = random.choice([
-                (0.8, 0.8), (0.8, 0.2), (0.2, 0.8), (0.2, 0.2)
-            ])
-            for _ in range(self.nombre_tuiles):
-                while self.carte.tuile_presente((nouvelle_position_x, nouvelle_position_y)):
-                    if random.random() < self.probabilite_gauche:
-                        nouvelle_position_x += DECALAGE_GAUCHE[0] * 16
-                    else:
-                        nouvelle_position_x += DECALAGE_DROITE[0] * 16
-                    if random.random() < self.probabilite_monter:
-                        nouvelle_position_y += DECALAGE_HAUT[1] * 16
-                    else:
-                        nouvelle_position_y += DECALAGE_BAS[1] * 16
-                position_x: float = nouvelle_position_x
-                position_y: float = nouvelle_position_y
-                self.carte.ajouter_tuile((position_x, position_y), "herbe")
+        Crée un chemin aléatoire en plaçant des tuiles selon des probabilités
+        de direction (gauche/droite, haut/bas) définies aléatoirement.
+        """
+        raise NotImplementedError
+        position_x = nouvelle_position_x = 0.0
+        position_y = nouvelle_position_y = 0.0
+        self.probabilite_monter, self.probabilite_gauche = random.choice([
+            (0.8, 0.8), (0.8, 0.2), (0.2, 0.8), (0.2, 0.2)
+        ])
+        for _ in range(self.nombre_tuiles):
+            while self.carte.tuile_presente((nouvelle_position_x, nouvelle_position_y)):
+                if random.random() < self.probabilite_gauche:
+                    nouvelle_position_x += DECALAGE_GAUCHE[0] * 16
+                else:
+                    nouvelle_position_x += DECALAGE_DROITE[0] * 16
+                if random.random() < self.probabilite_monter:
+                    nouvelle_position_y += DECALAGE_HAUT[1] * 16
+                else:
+                    nouvelle_position_y += DECALAGE_BAS[1] * 16
+            position_x: float = nouvelle_position_x
+            position_y: float = nouvelle_position_y
+            self.carte.ajouter_tuile((position_x, position_y), "herbe")
 
-    def generation_procedurale_iles(self) -> None:
+    def generation_procedurale_iles(self, carte: Carte) -> None:
         """Génère des îles variées séparées par des espaces vides.
 
         Crée différentes formes d'îles (triangles, ponts, escaliers, rectangles)
@@ -89,22 +106,22 @@ class GenerateurTerrain:
                     hauteur = random.randint(32, 64)
 
             # Détermine la hauteur de base en évitant les superpositions
-            hauteur_base: float = self.carte._hauteur_libre(position_x, largeur)
+            hauteur_base: float = carte._hauteur_libre(position_x, largeur)
 
             # Crée la forme
             match forme:
                 case "triangle_inversé":
-                    self.carte._creer_triangle_inverse(position_x, hauteur_base, largeur, hauteur, type_tuile)
+                    carte._creer_triangle_inverse(position_x, hauteur_base, largeur, hauteur, type_tuile)
                 case "triangle_normal":
-                    self.carte._creer_triangle_normal(position_x, hauteur_base, hauteur, type_tuile)
+                    carte._creer_triangle_normal(position_x, hauteur_base, hauteur, type_tuile)
                 case "pont":
-                    self.carte._creer_pont(position_x, hauteur_base, largeur, type_tuile)
+                    carte._creer_pont(position_x, hauteur_base, largeur, type_tuile)
                 case "triangle_vertical":
-                    self.carte._creer_triangle_vertical(position_x, hauteur_base, largeur, hauteur, type_tuile)
+                    carte._creer_triangle_vertical(position_x, hauteur_base, largeur, hauteur, type_tuile)
                 case "escalier":
-                    self.carte._creer_escalier(position_x, hauteur_base, hauteur, type_tuile)
+                    carte._creer_escalier(position_x, hauteur_base, hauteur, type_tuile)
                 case "rectangle":
-                    self.carte._creer_rectangle(position_x, hauteur_base, largeur, hauteur, type_tuile)
+                    carte._creer_rectangle(position_x, hauteur_base, largeur, hauteur, type_tuile)
 
             # Décalage horizontal pour la prochaine île
             espace_vide: float = random.randint(1, 4) * 16

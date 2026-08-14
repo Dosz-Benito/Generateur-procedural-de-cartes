@@ -1,16 +1,14 @@
 """Module définissant la classe Carte pour gérer la carte du jeu."""
 
-import math
-from multiprocessing import Value
 import random
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 import pygame
 import json
 import os
 from tkinter import filedialog
 from scripts.generation.ennemi.bloc import Bloc
 from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, INDEXS_DECALAGES_TUILES_MARCHABLES, TYPES_REDESSIN
+from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
 from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
 
 # Constantes pour la génération
