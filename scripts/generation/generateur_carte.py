@@ -7,7 +7,7 @@ from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, D
 from scripts.parametres.type import TypeDecoration, TypeEntite
 
 
-class GenerateurTerrain:
+class GenerateurCarte:
     def __init__(self, nombre_tuiles_max_horizontal: int, longueur_tuile: int = 16, largeur_tuile: int = 16, ) -> None:
         self.nombre_tuiles: int = nombre_tuiles_max_horizontal
         self.longueur_tuile: int = longueur_tuile
@@ -17,20 +17,20 @@ class GenerateurTerrain:
         self.probabilite_monter: float = 0.0
         self.probabilite_gauche: float = 0.0
 
-    def generer(self, type_carte: Literal["Ile", "Bloc"], images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]], images_entites: dict[TypeEntite, pygame.Surface]) -> Carte:
-        """Génère le terrain de la carte selon le type de génération demandé.
+    def generer(self, type_terrain: Literal["Ile", "Bloc"], images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]], images_entites: dict[TypeEntite, pygame.Surface]) -> Carte:
+        """Génère la carte selon le type de génération demandé.
 
         Args:
-            type_carte (Literal["Ile", "Bloc"]): Type de génération à utiliser.
+            type_terrain (Literal["Ile", "Bloc"]): Type de génération à utiliser pour le terrain.
         """
         carte = Carte(images_tuiles, images_deco, images_entites) # pyright: ignore[reportArgumentType]
-        match type_carte:
+        match type_terrain:
             case "Ile":
                 self.generer_terrain_en_iles(carte)
             case "Bloc":
                 self.generation_procedurale_bloc()
             case _:
-                raise ValueError(f"Le type de carte {type_carte} n'est pas pris en charge")
+                raise ValueError(f"Le type de carte {type_terrain} n'est pas pris en charge")
         carte.remplir()
         carte.redessiner()
         carte.definir_groupes_tuiles()
