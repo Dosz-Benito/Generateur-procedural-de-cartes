@@ -168,16 +168,6 @@ class Carte:
             y (int): Coordonnée Y
         """
         del self.carte_deco[pos_en_str((x, y))]
-
-    def generer_deco(self) -> None:
-        """Génère des décorations aléatoires sur les tuiles existantes."""
-        for tuile in self.tuiles_marchables:
-            if random.random() < 0.5:
-                type_deco: TypeDecoration = random.choice(list(self.images_deco.keys()))
-                index = random.choice(range(len(self.images_deco[type_deco])))
-                image = self.images_deco[type_deco][index].copy()
-                rect = image.get_frect(midbottom = tuile.rect.midtop)
-                self.ajouter_deco(rect, type_deco, index)
     # endregion
 
     # region Gestion des entités

@@ -34,7 +34,7 @@ class GenerateurCarte:
         carte.remplir()
         carte.redessiner()
         carte.definir_groupes_tuiles()
-        carte.generer_deco()
+        self.generer_deco(carte)
         carte.generer_entite("joueur")
         carte.generer_entite("ennemi")
         return carte
@@ -127,4 +127,16 @@ class GenerateurCarte:
             # Décalage horizontal pour la prochaine île
             espace_vide: float = random.randint(1, 4) * 16
             position_x += largeur + espace_vide
+    # endregion
+
+    # region Génération de la décoration
+    def generer_deco(self, carte: Carte) -> None:
+        """Génère des décorations aléatoires sur les tuiles existantes."""
+        for tuile in carte.tuiles_marchables:
+            if random.random() < 0.5:
+                type_deco: TypeDecoration = random.choice(list(carte.images_deco.keys()))
+                index = random.choice(range(len(carte.images_deco[type_deco])))
+                image = carte.images_deco[type_deco][index].copy()
+                rect = image.get_frect(midbottom = tuile.rect.midtop)
+                carte.ajouter_deco(rect, type_deco, index)
     # endregion
