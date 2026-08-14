@@ -171,15 +171,6 @@ class Carte:
     # endregion
 
     # region Gestion des entités
-    def generer_entite(self, type_entite: TypeEntite) -> None:
-        match type_entite:
-            case "joueur":
-                self.ajouter_joueur()
-            case "ennemi":
-                self.ajouter_ennemis()
-            case _:
-                raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
-
     def ajouter_ennemis(self) -> None:
         self.carte_entites["ennemi"] = []
         for bloc in self._extraire_blocs_tuiles_marchables(3):

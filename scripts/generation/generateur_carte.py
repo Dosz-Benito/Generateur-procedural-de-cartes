@@ -35,8 +35,8 @@ class GenerateurCarte:
         carte.redessiner()
         carte.definir_groupes_tuiles()
         self.generer_deco(carte)
-        carte.generer_entite("joueur")
-        carte.generer_entite("ennemi")
+        self.generer_entite("joueur", carte)
+        self.generer_entite("ennemi", carte)
         return carte
 
     # region Génération du terrain
@@ -139,4 +139,15 @@ class GenerateurCarte:
                 image = carte.images_deco[type_deco][index].copy()
                 rect = image.get_frect(midbottom = tuile.rect.midtop)
                 carte.ajouter_deco(rect, type_deco, index)
+    # endregion
+
+    # region Génération des entités
+    def generer_entite(self, type_entite: TypeEntite, carte: Carte) -> None:
+        match type_entite:
+            case "joueur":
+                carte.ajouter_joueur()
+            case "ennemi":
+                carte.ajouter_ennemis()
+            case _:
+                raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
     # endregion
