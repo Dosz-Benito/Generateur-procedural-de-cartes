@@ -148,7 +148,7 @@ class GenerateurCarte:
             case "joueur":
                 self.generer_joueur(carte)
             case "ennemi":
-                carte.ajouter_ennemis()
+                self.generer_ennemis(carte)
             case _:
                 raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
 
@@ -165,4 +165,11 @@ class GenerateurCarte:
         rect_joueur.bottomleft = tuile_choisie.rect.topleft
         rect_joueur.bottom -= 16*5
         carte.carte_entites["joueur"] = Entite("joueur", rect_joueur.topleft, image_joueur)
+
+    def generer_ennemis(self, carte: Carte) -> None:
+            carte.carte_entites["ennemi"] = []
+            for bloc in carte._extraire_blocs_tuiles_marchables(3):
+                tuile_choisie: Tuile = min(bloc.tuiles, key=lambda tuile: abs(tuile.rect.x - bloc.milieu))
+                for i in range(random.randint(0, bloc.nb_tuiles)):
+                    carte.carte_entites["ennemi"].append(Entite("ennemi", carte.images_entites["ennemi"].get_frect(left=tuile_choisie.rect.left, bottom=tuile_choisie.rect.top - 16*5).topleft, carte.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
     # endregion

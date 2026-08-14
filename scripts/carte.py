@@ -170,16 +170,6 @@ class Carte:
         del self.carte_deco[pos_en_str((x, y))]
     # endregion
 
-    # region Gestion des entités
-    def ajouter_ennemis(self) -> None:
-        self.carte_entites["ennemi"] = []
-        for bloc in self._extraire_blocs_tuiles_marchables(3):
-            tuile_choisie: Tuile = min(bloc.tuiles, key=lambda tuile: abs(tuile.rect.x - bloc.milieu))
-            for i in range(random.randint(0, bloc.nb_tuiles)):
-                self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile_choisie.rect.left, bottom=tuile_choisie.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
-
-    # endregion
-
     # region Remplissage de la carte
     def remplir(self) -> None:
         """Remplit les espaces vides et fermés de la carte avec des tuiles."""
