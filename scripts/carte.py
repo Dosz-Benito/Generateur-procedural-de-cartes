@@ -92,7 +92,7 @@ class Carte:
                 voisins.append(self.carte_tuiles[pos_en_str(pos_pixels)])
         return voisins
 
-    # Organisation des tuiles
+    # region Organisation des tuiles
     def definir_groupes_tuiles(self) -> None:
         self.tuiles_marchables = pygame.sprite.Group(self._tuiles_en_haut())
         for tuile in self.tuiles_marchables:
