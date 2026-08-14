@@ -5,6 +5,7 @@ import pygame
 from scripts.carte import Carte
 from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, TypeTuile
 from scripts.parametres.type import TypeDecoration, TypeEntite
+from scripts.tuile import Tuile, Entite
 
 
 class GenerateurCarte:
@@ -145,9 +146,23 @@ class GenerateurCarte:
     def generer_entite(self, type_entite: TypeEntite, carte: Carte) -> None:
         match type_entite:
             case "joueur":
-                carte.ajouter_joueur()
+                self.generer_joueur(carte)
             case "ennemi":
                 carte.ajouter_ennemis()
             case _:
                 raise ValueError(f"Le type d'entité {type_entite} n'est pas pris en charge")
+
+    def generer_joueur(self, carte: Carte) -> None:
+        tuile_choisie: Tuile = carte.tuiles_marchables.sprites()[0]
+        
+        resultat_tuile_en_haut: list[Tuile] = carte._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
+        while len(resultat_tuile_en_haut) != 0:
+            tuile_choisie = resultat_tuile_en_haut[0]
+            resultat_tuile_en_haut = carte._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
+
+        image_joueur = carte.images_entites["joueur"]
+        rect_joueur = image_joueur.get_frect()
+        rect_joueur.bottomleft = tuile_choisie.rect.topleft
+        rect_joueur.bottom -= 16*5
+        carte.carte_entites["joueur"] = Entite("joueur", rect_joueur.topleft, image_joueur)
     # endregion

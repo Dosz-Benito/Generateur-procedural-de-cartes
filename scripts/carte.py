@@ -8,7 +8,7 @@ import os
 from tkinter import filedialog
 from scripts.generation.type import BlocTuiles
 from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
+from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
 from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
 
 # Constantes pour la génération
@@ -178,20 +178,6 @@ class Carte:
             for i in range(random.randint(0, bloc.nb_tuiles)):
                 self.carte_entites["ennemi"].append(Entite("ennemi", self.images_entites["ennemi"].get_frect(left=tuile_choisie.rect.left, bottom=tuile_choisie.rect.top - 16*5).topleft, self.images_entites["ennemi"])) # pyright: ignore[reportAttributeAccessIssue]
 
-    def ajouter_joueur(self) -> None:
-        tuile_choisie: Tuile = self.tuiles_marchables.sprites()[0]
-
-        resultat_tuile_en_haut: list[Tuile] = self._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
-        while len(resultat_tuile_en_haut) != 0:
-            tuile_choisie = resultat_tuile_en_haut[0]
-            resultat_tuile_en_haut = self._tuiles_autour(tuile_choisie, [DECALAGE_HAUT])
-
-        image_joueur = self.images_entites["joueur"]
-        rect_joueur = image_joueur.get_frect()
-        rect_joueur.bottomleft = tuile_choisie.rect.topleft
-        rect_joueur.bottom -= 16*5
-        joueur = Entite("joueur", rect_joueur.topleft, image_joueur)
-        self.carte_entites["joueur"] = joueur
     # endregion
 
     # region Remplissage de la carte
