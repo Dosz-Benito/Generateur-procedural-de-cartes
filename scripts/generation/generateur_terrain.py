@@ -26,7 +26,7 @@ class GenerateurTerrain:
         carte = Carte(images_tuiles, images_deco, images_entites) # pyright: ignore[reportArgumentType]
         match type_carte:
             case "Ile":
-                self.generation_procedurale_iles(carte)
+                self.generer_terrain_en_iles(carte)
             case "Bloc":
                 self.generation_procedurale_bloc()
             case _:
@@ -39,6 +39,7 @@ class GenerateurTerrain:
         carte.generer_entite("ennemi")
         return carte
 
+    # region Génération du terrain
     @deprecated("La fonction est à revoir")
     def generation_procedurale_bloc(self) -> None:
         """Génère une carte procédurale avec un chemin continu.
@@ -66,7 +67,7 @@ class GenerateurTerrain:
             position_y: float = nouvelle_position_y
             self.carte.ajouter_tuile((position_x, position_y), "herbe")
 
-    def generation_procedurale_iles(self, carte: Carte) -> None:
+    def generer_terrain_en_iles(self, carte: Carte) -> None:
         """Génère des îles variées séparées par des espaces vides.
 
         Crée différentes formes d'îles (triangles, ponts, escaliers, rectangles)
@@ -126,3 +127,4 @@ class GenerateurTerrain:
             # Décalage horizontal pour la prochaine île
             espace_vide: float = random.randint(1, 4) * 16
             position_x += largeur + espace_vide
+    # endregion
