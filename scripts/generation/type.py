@@ -9,11 +9,11 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Bloc:
-    """Représente un groupe de tuiles marchables à la même hauteur et contiguës.
+class BlocTuiles:
+    """Représente un groupe(bloc) de tuiles marchables à la même hauteur et contiguës.
 
     Un bloc correspond à une plateforme continue : toutes ses tuiles sont sur la
-    même ligne (même y) et se suivent horizontalement sans espace vide.
+    même ligne (même y) et se suivent horizontalement sans espace vide entre.
     """
 
     tuiles: list[Tuile]
@@ -32,7 +32,7 @@ class Bloc:
         return len(self.tuiles)
 
     @classmethod
-    def depuis_tuiles(cls, tuiles: list[Tuile]) -> Bloc:
+    def depuis_tuiles(cls, tuiles: list[Tuile]) -> BlocTuiles:
         """Construit un bloc à partir de tuiles contiguës à la même hauteur.
 
         Args:

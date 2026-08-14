@@ -6,7 +6,7 @@ import pygame
 import json
 import os
 from tkinter import filedialog
-from scripts.generation.ennemi.bloc import Bloc
+from scripts.generation.type import BlocTuiles
 from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
 from scripts.parametres import CARTE_REDESSIN, DECALAGE_HAUT, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
 from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
@@ -112,7 +112,7 @@ class Carte:
             marchables.append(tuile)
         return marchables
 
-    def _decouper_tuiles_en_blocs(self) -> list[Bloc]:
+    def _decouper_tuiles_en_blocs(self) -> list[BlocTuiles]:
         """Découpe les tuiles marchables en blocs contigus à la même hauteur.
 
         Returns:
@@ -123,21 +123,21 @@ class Carte:
         for tuile in self.tuiles_marchables:
             tuiles_par_hauteur.setdefault(tuile.rect.y, []).append(tuile)
 
-        blocs: list[Bloc] = []
+        blocs: list[BlocTuiles] = []
         for tuiles in tuiles_par_hauteur.values():
             tuiles_triees: list[Tuile] = sorted(tuiles, key=lambda tuile: tuile.rect.x)
             bloc_courant: list[Tuile] = [tuiles_triees[0]]
             for tuile in tuiles_triees[1:]:
                 if tuile.rect.x - bloc_courant[-1].rect.x > 16:
-                    blocs.append(Bloc.depuis_tuiles(bloc_courant))
+                    blocs.append(BlocTuiles.depuis_tuiles(bloc_courant))
                     bloc_courant = [tuile]
                 else:
                     bloc_courant.append(tuile)
-            blocs.append(Bloc.depuis_tuiles(bloc_courant))
+            blocs.append(BlocTuiles.depuis_tuiles(bloc_courant))
         return blocs
 
-    def _extraire_blocs_tuiles_marchables(self, nb_tuiles_minimal: int) -> list[Bloc]:
-        blocs: list[Bloc] = self._decouper_tuiles_en_blocs()
+    def _extraire_blocs_tuiles_marchables(self, nb_tuiles_minimal: int) -> list[BlocTuiles]:
+        blocs: list[BlocTuiles] = self._decouper_tuiles_en_blocs()
 
         for bloc in blocs.copy():
             if bloc.nb_tuiles < nb_tuiles_minimal:

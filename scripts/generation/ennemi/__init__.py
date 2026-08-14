@@ -1,1 +1,0 @@
-"""Paquet gérant la logique des ennemis et des blocs de tuiles marchables."""
