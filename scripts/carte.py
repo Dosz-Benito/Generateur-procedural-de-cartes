@@ -6,10 +6,10 @@ import pygame
 import json
 import os
 from tkinter import filedialog
-from scripts.generation.type import BlocTuiles
-from scripts.tuile import Decoration, Entite, Tuile, pos_en_str
-from scripts.parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
-from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
+from .generation.type import BlocTuiles
+from .tuile import Decoration, Entite, Tuile, pos_en_str
+from .parametres import CARTE_REDESSIN, INDEXS_DECALAGES, INDEXS_DECALAGES_DIAGONAUX, INDEXS_DECALAGES_DROITS, INDEXS_DECALAGES_TUILES_EN_BAS, TYPES_REDESSIN
+from .parametres.type import TypeDecoration, TypeEntite, TypeTuile
 
 # Constantes pour la génération
 PROFONDEUR_MAX = 11

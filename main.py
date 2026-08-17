@@ -3,12 +3,21 @@
 from typing import Literal, NoReturn, Optional
 import pygame
 import sys
-from scripts.generation import generer_carte
-from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
-from scripts.rendu import Rendu
-from scripts.utilitaires import debogage
-from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
-from scripts.utilitaires.outils_images import charger_image, charger_images
+
+if __package__:
+    from .scripts.generation import generer_carte
+    from .scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
+    from .scripts.rendu import Rendu
+    from .scripts.utilitaires import debogage
+    from .scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
+    from .scripts.utilitaires.outils_images import charger_image, charger_images
+else:
+    from scripts.generation import generer_carte
+    from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
+    from scripts.rendu import Rendu
+    from scripts.utilitaires import debogage
+    from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
+    from scripts.utilitaires.outils_images import charger_image, charger_images
 # Tester avec stubtest.exe
 
 

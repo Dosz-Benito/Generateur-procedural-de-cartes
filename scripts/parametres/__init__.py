@@ -1,7 +1,7 @@
 """Paramètres et constantes globales du projet de génération procédurale de cartes."""
 
 import pygame
-from scripts.parametres.type import TypeDecoration, TypeTuile
+from .type import TypeDecoration, TypeTuile
 
 #* Jeu en général
 TAILLE_ECRAN: tuple[int, int] = (1690, 800)

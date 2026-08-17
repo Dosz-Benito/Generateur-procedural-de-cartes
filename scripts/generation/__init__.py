@@ -1,9 +1,9 @@
 from typing import Literal
 import pygame
-from scripts.carte import Carte
-from scripts.generation.generateur_carte import GenerateurCarte
-from scripts.parametres import NOMBRE_TUILES
-from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
+from ..carte import Carte
+from .generateur_carte import GenerateurCarte
+from ..parametres import NOMBRE_TUILES
+from ..parametres.type import TypeDecoration, TypeEntite, TypeTuile
 
 
 generateur_terrain: GenerateurCarte = GenerateurCarte(NOMBRE_TUILES)

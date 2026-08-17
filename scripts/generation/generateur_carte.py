@@ -2,10 +2,10 @@ import random
 from typing import Any, Generator, Literal
 from warnings import deprecated
 import pygame
-from scripts.carte import HAUTEUR_MAX_GENERATION, HAUTEUR_MIN_GENERATION, Carte
-from scripts.parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, TypeTuile
-from scripts.parametres.type import TypeDecoration, TypeEntite
-from scripts.tuile import Tuile, Entite
+from ..carte import HAUTEUR_MAX_GENERATION, HAUTEUR_MIN_GENERATION, Carte
+from ..parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, TypeTuile
+from ..parametres.type import TypeDecoration, TypeEntite
+from ..tuile import Tuile, Entite
 
 
 class GenerateurCarte:
