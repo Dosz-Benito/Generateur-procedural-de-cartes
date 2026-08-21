@@ -126,6 +126,7 @@ class Fenetre:
                 self.camera.empty()
                 self.camera.add(self.carte.carte_tuiles.values())
                 self.camera.add(self.carte.carte_deco.values())
+                self.camera.add(self.carte.carte_entites.values())
             self.message_debug = f"✓ {message}" if succes else f"✗ {message}"
             self.couleur_debug = pygame.Color(0, 255, 0) if succes else pygame.Color(255, 0, 0)
         elif key == ENREGISTRER_CARTE:

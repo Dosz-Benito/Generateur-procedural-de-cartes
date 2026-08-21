@@ -136,3 +136,7 @@ class Tuile(ElementSprite):
 class Entite(ElementSprite):
     def __init__(self, type: TypeEntite, pos: tuple[float, float], image: pygame.Surface) -> None:
         super().__init__(type, 0, pos, image)
+
+    @classmethod
+    def de_dict(cls, infos: dict[str, Any], image: pygame.Surface) -> Entite:
+        return cls(infos["type"], infos["pos"], image)

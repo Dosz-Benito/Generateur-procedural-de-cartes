@@ -351,6 +351,9 @@ class Carte:
                 deco = Decoration(infos_deco["type"], infos_deco["index"], infos_deco["pos"], self.images_deco[infos_deco["type"]][infos_deco["index"]])
                 self.carte_deco[pos_str] = deco
 
+            # Reconstruire les entités à partir de ces données
+            self.carte_entites["joueur"] = Entite.de_dict(donnees["entites"]["joueur"], self.images_entites["joueur"])
+
             # Si nom_fichier n'est pas défini dans le fichier, utiliser le basename
             if self.nom_fichier is None:
                 self.nom_fichier = os.path.basename(chemin_fichier)
