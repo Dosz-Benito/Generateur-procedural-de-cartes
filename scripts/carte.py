@@ -335,6 +335,8 @@ class Carte:
 
             # Vider la carte actuelle
             self.carte_tuiles.clear()
+            self.carte_deco.clear()
+            self.carte_entites.clear()
 
             # Charger les données du fichier
             self.nom_fichier = os.path.basename(chemin_fichier)
