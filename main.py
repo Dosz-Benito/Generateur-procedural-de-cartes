@@ -4,7 +4,7 @@ from typing import Literal, NoReturn, Optional
 import pygame
 import sys
 
-import scripts.preliminaires
+from scripts import preliminaires
 from scripts.generation import generer_carte
 from scripts.rendu import Rendu
 from scripts.utilitaires import debogage

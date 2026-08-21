@@ -1,6 +1,6 @@
 import os
 os.environ["SDL_VIDEODRIVER"] = "dummy"
-import scripts.preliminaires
+from .. import preliminaires
 
 from fastapi import FastAPI, Response
 from ..generation import generer_carte
