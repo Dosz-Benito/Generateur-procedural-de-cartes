@@ -353,6 +353,7 @@ class Carte:
 
             # Reconstruire les entités à partir de ces données
             self.carte_entites["joueur"] = Entite.de_dict(donnees["entites"]["joueur"], self.images_entites["joueur"])
+            self.carte_entites["ennemi"] = [Entite.de_dict(infos, self.images_entites["ennemi"]) for _, infos in donnees["entites"]["ennemi"].items()]
 
             # Si nom_fichier n'est pas défini dans le fichier, utiliser le basename
             if self.nom_fichier is None:
