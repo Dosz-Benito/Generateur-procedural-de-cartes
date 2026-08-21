@@ -23,5 +23,5 @@ def accueil():
 
 @app.get("/nouvelle_carte")
 def nouvelle_carte():
-    carte = generer_carte("Ile")
+    carte = generer_carte("Ile").en_dict()
     return carte
