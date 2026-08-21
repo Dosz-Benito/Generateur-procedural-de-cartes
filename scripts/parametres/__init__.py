@@ -1,6 +1,7 @@
 """Paramètres et constantes globales du projet de génération procédurale de cartes."""
 
 import pygame
+from ..utilitaires.outils_images import charger_image, charger_images
 from .type import TypeDecoration, TypeTuile
 
 #* Jeu en général
@@ -78,3 +79,20 @@ CARTE_REDESSIN: dict[tuple[tuple[int, int], ...], int]= {
     tuple(sorted([(0, -1)])): 5,
     tuple(sorted([(1, 0)])): 0,
 }
+
+# Autres
+ressources: dict[str, list[pygame.Surface] | pygame.Surface] = {
+# Décor
+'herbe': charger_images("rsc/images/tuiles/herbe"),
+'pierre': charger_images("rsc/images/tuiles/pierre"),
+"plante": charger_images("rsc/images/deco/plantes"),
+"arbre": charger_images("rsc/images/deco/arbres"),
+
+# Entités
+"joueur": charger_image("rsc/images/personnages/joueur/joueur.png"),
+"ennemi": charger_image("rsc/images/personnages/ennemi/ennemi.png")
+}
+
+images_tuiles = {"herbe" : ressources["herbe"], "pierre": ressources["pierre"]}
+images_deco = {"plante": ressources["plante"], "arbre": ressources["arbre"]}
+images_entites= {"joueur": ressources["joueur"], "ennemi": ressources["ennemi"]}

@@ -1,5 +1,7 @@
+import os
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 from fastapi import FastAPI, Response
-
+from ..generation import generer_carte
 
 app = FastAPI()
 
@@ -16,3 +18,8 @@ def accueil():
     <h1>Bienvenue sur l'accueil du serveur Raydash !!!</h1>
 </body>
 </html>""")
+
+@app.get("/nouvelle_carte")
+def nouvelle_carte():
+    carte = generer_carte("Ile")
+    return carte

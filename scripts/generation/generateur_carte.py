@@ -6,6 +6,7 @@ from ..carte import HAUTEUR_MAX_GENERATION, HAUTEUR_MIN_GENERATION, Carte
 from ..parametres import DECALAGE_BAS, DECALAGE_DROITE, DECALAGE_GAUCHE, DECALAGE_HAUT, TypeTuile
 from ..parametres.type import TypeDecoration, TypeEntite
 from ..tuile import Tuile, Entite
+from ..parametres import images_tuiles, images_deco, images_entites
 
 
 class GenerateurCarte:
@@ -18,13 +19,14 @@ class GenerateurCarte:
         self.probabilite_monter: float = 0.0
         self.probabilite_gauche: float = 0.0
 
-    def generer(self, type_terrain: Literal["Ile", "Bloc"], images_tuiles: dict[TypeTuile, list[pygame.Surface]], images_deco: dict[TypeDecoration, list[pygame.Surface]], images_entites: dict[TypeEntite, pygame.Surface]) -> Carte:
+    def generer(self, type_terrain: Literal["Ile", "Bloc"]) -> Carte:
         """Génère la carte selon le type de génération demandé.
 
         Args:
             type_terrain (Literal["Ile", "Bloc"]): Type de génération à utiliser pour le terrain.
         """
-        carte = Carte(images_tuiles, images_deco, images_entites) # pyright: ignore[reportArgumentType]
+        # carte = Carte(images_tuiles, images_deco, images_entites) # pyright: ignore[reportArgumentType]
+        carte = Carte(images_tuiles, images_deco, images_entites)
         match type_terrain:
             case "Ile":
                 self.generer_terrain_en_iles(carte)

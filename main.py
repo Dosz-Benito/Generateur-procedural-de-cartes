@@ -4,12 +4,11 @@ from typing import Literal, NoReturn, Optional
 import pygame
 import sys
 
+import scripts.preliminaires
 from scripts.generation import generer_carte
-from scripts.parametres.type import TypeDecoration, TypeEntite, TypeTuile
 from scripts.rendu import Rendu
 from scripts.utilitaires import debogage
 from scripts.parametres import DECALER_BAS, DECALER_DROITE, DECALER_GAUCHE, DECALER_HAUT, ENREGISTRER_CARTE, FPS, GENERER_CARTE, GENERER_CARTE_ILES, NOUVELLE_CARTE, OUVRIR_CARTE, TAILLE_AFFICHAGE, TAILLE_ECRAN, VITESSE_CAMERA
-from scripts.utilitaires.outils_images import charger_image, charger_images
 # Tester avec stubtest.exe
 
 
@@ -22,31 +21,13 @@ class Fenetre:
 
     def __init__(self) -> None:
         """Initialise l'éditeur Pygame et génère la première carte."""
-        pygame.init()
         pygame.display.set_caption("Éditeur de niveau")
 
         # Pour l'affichage
         self.surface_affichage = pygame.Surface(TAILLE_AFFICHAGE)
         self.fenetre: pygame.Surface = pygame.display.set_mode(TAILLE_ECRAN, pygame.SRCALPHA)
 
-        self.ressources: dict[str, list[pygame.Surface] | pygame.Surface] = {
-            # Décor
-            'herbe': charger_images("rsc/images/tuiles/herbe"),
-            'pierre': charger_images("rsc/images/tuiles/pierre"),
-            "plante": charger_images("rsc/images/deco/plantes"),
-            "arbre": charger_images("rsc/images/deco/arbres"),
-
-            # Entités
-            "joueur": charger_image("rsc/images/personnages/joueur/joueur.png"),
-            "ennemi": charger_image("rsc/images/personnages/ennemi/ennemi.png")
-        }
-
         self.horloge = pygame.time.Clock()
-
-        images_tuiles: dict[TypeTuile, list[pygame.Surface]]= {"herbe" : self.ressources["herbe"], "pierre": self.ressources["pierre"]} # pyright: ignore[reportAssignmentType]
-        images_deco: dict[TypeDecoration, list[pygame.Surface]] = {"plante": self.ressources["plante"], "arbre": self.ressources["arbre"]} # pyright: ignore[reportAssignmentType]
-        images_entites: dict[TypeEntite, pygame.Surface]= {"joueur": self.ressources["joueur"], "ennemi": self.ressources["ennemi"]} # pyright: ignore[reportAssignmentType]
-        self.groupes_images: tuple[dict[TypeTuile | TypeDecoration | TypeEntite, list[pygame.Surface]] | pygame.Surface, ...] = (images_tuiles, images_deco, images_entites) # pyright: ignore[reportAttributeAccessIssue]
 
         # Mettre à jour les tuiles et décorations dans la caméra
         self.camera = Rendu(*TAILLE_ECRAN)
@@ -62,7 +43,7 @@ class Fenetre:
         self.mouvement_vertical: list[bool] = [False, False]
 
     def nouvelle_generation(self, type_terrain: Literal["Ile", "Bloc"]) -> None:
-        self.carte = generer_carte(type_terrain, *self.groupes_images) # pyright: ignore[reportArgumentType]
+        self.carte = generer_carte(type_terrain) # pyright: ignore[reportArgumentType]
 
         self.camera.empty()
         self.camera.add(self.carte.carte_tuiles.values())
