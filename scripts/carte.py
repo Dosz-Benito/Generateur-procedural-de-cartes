@@ -301,7 +301,11 @@ class Carte:
     def en_dict(self):
         return {
                 "tuiles": {position: tuile.en_dict() for position, tuile in self.carte_tuiles.items()},
-                "deco": {position: deco.en_dict() for position, deco in self.carte_deco.items()}
+                "deco": {position: deco.en_dict() for position, deco in self.carte_deco.items()},
+                "entites": {
+                    "joueur": self.carte_entites["joueur"].en_dict(), # pyright: ignore[reportAttributeAccessIssue]
+                    "ennemi": { pos_en_str(ennemi.rect.topleft): ennemi.en_dict() for ennemi in self.carte_entites["ennemi"] } # pyright: ignore[reportGeneralTypeIssues]
+                    }
             }
 
     def charger_carte(self) -> tuple[bool, str]:
