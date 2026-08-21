@@ -287,11 +287,7 @@ class Carte:
                 self.nom_fichier = f"{numero_fichier}.json"
 
             # Préparer les données à sauvegarder
-            donnees_carte: dict[str, str | dict[str, dict[str, Any]]] = {
-                # "nom_fichier": self.nom_fichier,
-                "tuiles": {position: tuile.en_dict() for position, tuile in self.carte_tuiles.items()},
-                "deco": {position: deco.en_dict() for position, deco in self.carte_deco.items()},
-            }
+            donnees_carte = self.en_dict()
 
             # Sauvegarder dans le fichier
             with open(chemin_fichier, 'w', encoding='utf-8') as fichier:
@@ -301,6 +297,12 @@ class Carte:
 
         except Exception as erreur:
             return False, f"Erreur lors de la sauvegarde : {str(erreur)}"
+
+    def en_dict(self):
+        return {
+                "tuiles": {position: tuile.en_dict() for position, tuile in self.carte_tuiles.items()},
+                "deco": {position: deco.en_dict() for position, deco in self.carte_deco.items()}
+            }
 
     def charger_carte(self) -> tuple[bool, str]:
         """
